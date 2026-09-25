@@ -32,6 +32,14 @@
     if (box.dataset.sig !== sig) {
       box.dataset.sig = sig;
       box.innerHTML = `<div class="cm ${dmxOk ? 'live' : 'down'}">
+        <div class="ap-row" style="flex-wrap:wrap;margin-bottom:12px">
+          <button class="btn" data-group="all">Gesty → wszystkie światła</button>
+          <button class="btn" data-group="sel">Gesty → zaznaczone światła</button>
+          <button class="btn" data-copy>Dodaj kopię wybranej lampy</button>
+          <button class="btn" data-edit>Adresy i ustawienia</button>
+          <span class="hint">Shift + klik: zaznacz grupę. Adres nowej lampy ustaw również na jej obudowie.</span>
+          <span class="hint" data-group-status></span>
+        </div>
         <div class="cm-row">
           <div class="cm-node pc"><span class="cm-ic">${ic('setup')}</span><b>${esc(t('cm.pc'))}</b></div>
           <i class="cm-link ${dmxOk ? 'on' : ''}"></i>
@@ -50,20 +58,33 @@
       for (const b of $$('[data-id]', box)) b.onclick = (e) => {
         const id = Number(b.dataset.id);
         if (e.target.closest('[data-pw]')) { const f = S.st.fixtures.find((x) => x.id === id); send({ type: 'update_fixture', id, enabled: f.enabled === false }); send({ type: 'save' }); return; }
+        if (e.shiftKey) {
+          const ids = new Set(S.st.selection || []);
+          if (ids.has(id)) ids.delete(id); else ids.add(id);
+          send({ type: 'selection', ids: [...ids] });
+          return;
+        }
         send({ type: 'select', id });
         send({ type: 'fx_start', id: `cm-blink-${id}`, kind: 'blink', params: { speed: 5 }, targets: id, duration: 1.6 });
         b.classList.remove('ping'); void b.offsetWidth; b.classList.add('ping');
       };
       for (const b of $$('[data-go]', box)) b.onclick = () => PH.setupGo(b.dataset.go);
       for (const b of $$('[data-add]', box)) b.onclick = () => PH.setupGo('library');
+      for (const b of $$('[data-group]', box)) b.onclick = () => {
+        send({ type: 'scope', value: b.dataset.group });
+        send({ type: 'mode', mode: 'gesture' });
+      };
+      $('[data-copy]', box).onclick = () => { if (S.st.active_id != null) send({ type: 'duplicate_fixture', id: S.st.active_id }); };
+      $('[data-edit]', box).onclick = () => PH.setupGo('lamps');
     }
     // live: colour + glow of every device, selected one
     for (const el of $$('[data-glow]', box)) {
       const f = st.fixtures.find((x) => x.id === Number(el.dataset.glow)); if (!f) continue;
       const [r, g, b] = PH.rgbOf(f), I = PH.intensity(f, performance.now() / 1000);
       el.style.setProperty('--c', `rgb(${r},${g},${b})`); el.style.setProperty('--i', I.toFixed(2));
-      el.closest('.cm-node').classList.toggle('sel', f.id === st.active_id);
+      el.closest('.cm-node').classList.toggle('sel', (st.selection || []).includes(f.id) || f.id === st.active_id);
     }
+    $('[data-group-status]', box).textContent = `Zaznaczono: ${(st.selection || []).length} · Gesty: ${st.interaction.scope === 'all' ? 'wszystkie' : st.interaction.scope === 'sel' ? 'zaznaczone' : 'aktywna lampa'}`;
   }
   PH.onState.push((st) => {
     if (S.tab !== 'setup') return;

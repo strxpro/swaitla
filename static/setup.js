@@ -928,7 +928,7 @@
     if (!force && busy(box)) return;
     if (!once('control', sig, force)) return;
     box.innerHTML = group('', '', srow('ctl.mode', segCtl('ctl-mode', [['gesture', t('ctl.m.gesture')], ['track', t('ctl.m.track')], ['manual', t('ctl.m.manual')]], st.vision.mode))
-        + srow('ctl.scope', segCtl('ctl-scope', [['active', t('ctl.active')], ['all', t('ctl.all')]], st.interaction.scope))
+        + srow('ctl.scope', segCtl('ctl-scope', [['active', t('ctl.active')], ['sel', PH.lang === 'it' ? 'Selezionate' : 'Zaznaczone'], ['all', t('ctl.all')]], st.interaction.scope))
         + srow('ctl.follow', segCtl('ctl-follow', [['active', t('ctl.active')], ['all', t('ctl.all')]], st.interaction.follow_all ? 'all' : 'active'))
         + srow('ctl.aim', segCtl('ctl-aim', [['direct', t('ctl.aim.direct')], ['stage', t('ctl.aim.stage')]], st.aim_mode))
         + srow('ctl.span', `<span class="unit">pan</span>${numCtl('id="ctl-sp"', st.aim_span[0], 20, 540, 10, '°')}<span class="unit">tilt</span>${numCtl('id="ctl-st"', st.aim_span[1], 20, 270, 10, '°')}`))

@@ -324,15 +324,16 @@ class Fixture:
         base = self.address - 1
         layout = self.layout()
         dark = master <= 0.0                          # blackout: every light channel 0 (lamps without a dimmer too)
-        nodim = "dimmer" not in layout                # RGB / RGBW PAR without a dimmer: master scales the colours
+        nodim = "dimmer" not in layout
+        color_master = master * self.current["dimmer"] / 255.0 if nodim else master
         for i, name in enumerate(layout):
             idx = base + i
             if 0 <= idx < 512 and dark and name not in POSITION_ROLES:
                 universe[idx] = 0
                 continue
-            if 0 <= idx < 512 and nodim and name in COLOR_ROLES and master < 1.0:
+            if 0 <= idx < 512 and nodim and name in COLOR_ROLES:
                 v = self.overrides[i] if i in self.overrides else self._channel_value(name, master, lasers)
-                universe[idx] = int(round(v * master))
+                universe[idx] = int(round(v * color_master))
                 continue
             if 0 <= idx < 512:
                 if i in self.overrides:
@@ -1030,13 +1031,21 @@ class DMXEngine:
             self._next_id = max(self._next_id, fid + 1)
             values = kw.pop("values", None) or {}
             kw.setdefault("name", f"MH-{fid}")
-            if not kw.get("address"):
-                kw["address"] = self.next_free_address()
+            auto_address = not kw.get("address")
+            if auto_address:
+                kw["address"] = 1
             kw["address"] = int(_clamp(int(kw["address"]), 1, 512))
             if "pos" not in kw:
                 n = len(self.fixtures)
                 kw["pos"] = [round(-4.0 + (n % 5) * 2.0, 2), self.stage.truss_height, -2.5]
             f = Fixture.from_config({"id": fid, **kw, "values": values})
+            if auto_address:
+                address = self.free_address(f.footprint)
+                if address is None:
+                    raise ValueError("Brak wolnego zakresu DMX dla tego urządzenia (512 kanałów).")
+                f.address = address
+            if f.address + f.footprint - 1 > 512:
+                raise ValueError("Urządzenie wykracza poza zakres DMX 1–512.")
             if f.mount == "floor" and "pan" not in values:
                 f.aim([0.0, 0.0, 0.0])      # a standing head at rest points at the sky; aim at centre stage
                 f.snap()

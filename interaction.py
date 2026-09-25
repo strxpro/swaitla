@@ -91,6 +91,10 @@ class InteractionController:
     def _targets(self) -> Any:
         if self.scope == "all":                          # every light, never smoke machines / lasers
             return self.engine.lights("all")
+        if self.scope == "sel":
+            return [i for i in self.engine.selection if i in self.engine.fixtures
+                    and self.engine.fixtures[i].enabled
+                    and self.engine.fixtures[i].type not in self.engine.NON_LIGHT]
         return None
 
     def _clear_hover(self) -> None:

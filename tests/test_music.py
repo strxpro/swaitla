@@ -65,7 +65,7 @@ class TestMusic(unittest.TestCase):
     def test_blackout_darkens_everything(self):
         e, lamp, laser, fx = rig()
         par = e.add_fixture(name="PAR", address=20, type="par", channels=["red", "green", "blue", "macro"])
-        par.target.update(red=255, green=128, blue=0, macro=200)
+        par.target.update(red=255, green=128, blue=0, macro=200, dimmer=255)
         par.snap()
         lamp.target.update(dimmer=255, pan=40000)
         lamp.snap()

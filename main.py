@@ -434,7 +434,7 @@ def library_spec(key: str) -> dict[str, Any]:
 
 
 # commands that change the rig layout / setup are saved to config.json automatically
-AUTOSAVE = {"add_fixture", "update_fixture", "remove_fixture", "stage", "camera_quad", "dmx_output", "lasers", "aim_mode",
+AUTOSAVE = {"add_fixture", "duplicate_fixture", "free_address", "update_fixture", "remove_fixture", "stage", "camera_quad", "dmx_output", "lasers", "aim_mode",
             "aim_cal", "gesture_delete",
             "source", "mirror", "mode", "scope", "follow_all", "select", "smoothing",
             "stagecam_source", "stagecam_mirror", "stagecam_quad", "stagecam_follow",
@@ -729,7 +729,7 @@ async def handle_message(m: dict[str, Any]) -> dict[str, Any] | None:
         r.stagecam.det.reload()
         return _toast("", key="toast.modelOk")
     elif t == "scope":
-        r.interaction.scope = "all" if m.get("value") == "all" else "active"
+        r.interaction.scope = m.get("value") if m.get("value") in ("all", "sel") else "active"
     elif t == "follow_all":
         r.interaction.follow_all = bool(m.get("value"))
     elif t == "fx_start":      # {kind, params?, targets?, duration?, id?}
@@ -750,7 +750,11 @@ async def handle_message(m: dict[str, Any]) -> dict[str, Any] | None:
         r.effects.stop_all()
     elif t == "bpm":           # {value} tempo of the loaded song: effects with "beats" follow it
         r.effects.bpm = float(m["value"]) if m.get("value") else None
+    elif t == "audio_level":
+        r.effects.audio(float(m.get("level", 0)))
     elif t == "beat":          # {strength, drop, bpm} from live audio or the timeline
+        if m.get("source") != "live":
+            r.effects.audio_seen = False
         r.effects.beat(float(m.get("strength", 1)), bool(m.get("drop")), m.get("bpm"))
     elif t == "reactions":     # {flash, color_step, move_step, strobe_drop}
         r.effects.reactions.update({k: bool(v) for k, v in m.get("value", {}).items()

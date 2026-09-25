@@ -158,6 +158,7 @@ const curBpm = () => (MU.running && MU.bpm ? MU.bpm : TL.bpm) || null;
 const MU = {
   ctx: null, stream: null, an: null, buf: null, running: false,
   hist: [], lastBeat: 0, beatTimes: [], bpm: null, level: 0, fastE: 0, slowE: 0, lastDrop: 0, flash: 0,
+  wave: null, lastLevel: 0, peak: 0.08, confidence: 0,
 };
 async function muDevices() {
   const sel = $('#mu-dev');
@@ -180,18 +181,26 @@ async function muStart() {
     MU.an = MU.ctx.createAnalyser(); MU.an.fftSize = 1024; MU.an.smoothingTimeConstant = 0.05;
     src.connect(MU.an);
     MU.buf = new Uint8Array(MU.an.frequencyBinCount);
+    MU.wave = new Float32Array(MU.an.fftSize);
+    MU.lastBeat = MU.lastDrop = MU.lastLevel = MU.fastE = MU.slowE = 0;
+    MU.bpm = null; MU.peak = 0.08; MU.confidence = 0;
+    MU.stream.getAudioTracks().forEach((track) => { track.onended = () => { if (MU.running) muStop(); }; });
+    await MU.ctx.resume();
     MU.running = true; MU.hist = []; MU.beatTimes = [];
     $('#mu-start').textContent = 'Stop'; $('#mu-start').classList.add('on');
     muDevices();
   } catch (e) {
+    muStop();
     toast('Nie mogę otworzyć wejścia audio: ' + e.message, 'err');
   }
 }
 function muStop() {
   MU.running = false;
+  send({ type: 'audio_level', level: 0 });
   if (MU.stream) MU.stream.getTracks().forEach((tr) => tr.stop());
   if (MU.ctx) MU.ctx.close();
   MU.ctx = MU.stream = MU.an = null;
+  MU.bpm = null; MU.level = MU.flash = MU.confidence = 0;
   $('#mu-start').textContent = 'Start'; $('#mu-start').classList.remove('on');
 }
 function muTick(now) {
@@ -203,22 +212,33 @@ function muTick(now) {
   e /= (hi - lo + 1);
   let lvl = 0; for (let i = 0; i < MU.buf.length; i++) lvl += MU.buf[i];
   MU.level = lvl / MU.buf.length / 255;
+  // True waveform RMS distinguishes a quiet section from a strong isolated kick.
+  MU.an.getFloatTimeDomainData(MU.wave);
+  const rms = Math.sqrt(MU.wave.reduce((sum, v) => sum + v * v, 0) / MU.wave.length);
+  MU.peak = Math.max(0.08, rms, MU.peak * 0.9998);
+  if (now - MU.lastLevel >= 100) {
+    MU.lastLevel = now;
+    send({ type: 'audio_level', level: rms < 0.003 ? 0 : clamp(rms / MU.peak, 0, 1) });
+  }
+  if (now - MU.lastBeat > 2500) { MU.beatTimes = []; MU.bpm = null; MU.confidence = 0; }
   MU.hist.push(e); if (MU.hist.length > 70) MU.hist.shift();
   const avg = MU.hist.reduce((a, b) => a + b, 0) / MU.hist.length;
   MU.fastE = MU.fastE * 0.9 + e * 0.1; MU.slowE = MU.slowE * 0.997 + e * 0.003;
   const sens = Number($('#mu-sens').value);
-  if (e > avg * sens && e > 0.015 && now - MU.lastBeat > 280) {
+  if (e > avg * sens && e > 0.015 && rms > 0.003 && now - MU.lastBeat > 240) {
     MU.lastBeat = now; MU.flash = 1;
     MU.beatTimes.push(now); if (MU.beatTimes.length > 17) MU.beatTimes.shift();
     if (MU.beatTimes.length > 4) {
       const iv = MU.beatTimes.slice(1).map((v, i) => v - MU.beatTimes[i]).sort((a, b) => a - b);
       let bpm = 60000 / iv[Math.floor(iv.length / 2)];
-      while (bpm < 75) bpm *= 2; while (bpm > 185) bpm /= 2;
-      MU.bpm = MU.bpm ? MU.bpm * 0.8 + bpm * 0.2 : bpm;
+      while (bpm < 65) bpm *= 2; while (bpm > 200) bpm /= 2;
+      const median = iv[Math.floor(iv.length / 2)];
+      MU.confidence = iv.filter((v) => Math.abs(v - median) < median * 0.18).length / iv.length;
+      if (MU.confidence >= 0.6) MU.bpm = MU.bpm ? MU.bpm * 0.8 + bpm * 0.2 : bpm;
     }
     const drop = MU.fastE > MU.slowE * 1.9 && MU.slowE > 0.01 && now - MU.lastDrop > 8000;
     if (drop) MU.lastDrop = now;
-    send({ type: 'beat', strength: clamp(e / Math.max(1e-4, avg) - 1, 0, 1), drop, bpm: MU.bpm ? Math.round(MU.bpm) : null });
+    send({ type: 'beat', source: 'live', strength: clamp(e / Math.max(1e-4, avg) - 1, 0, 1), drop, bpm: MU.bpm ? Math.round(MU.bpm) : null });
   }
   MU.flash *= 0.88;
 }
@@ -1496,6 +1516,7 @@ function buildApCard() {
   card.innerHTML = `<div class="card-h"><span>${esc(t('ap.title'))}</span><span class="muted" id="ap-bpm"></span></div>
     <div class="card-b"><p class="hint" style="margin:0">${esc(t('ap.hint'))}</p>
       <div class="ap-row"><button class="btn big-toggle" id="ap-toggle"></button>
+        <button class="btn" id="ap-live">${LANG === 'it' ? 'Avvia show dal vivo' : 'Start pokazu na żywo'}</button>
         <label class="switch"><input type="checkbox" id="ap-spot"><span></span>${esc(t('ap.spot'))}</label></div>
       <div class="ap-row"><label class="switch"><input type="checkbox" id="ap-white"><span></span>${esc(t('ap.white'))}</label>
         <label class="switch" title="${esc(t('ap.lasersS'))}"><input type="checkbox" id="ap-lasers"><span></span>${esc(t('ap.lasers'))}</label></div>
@@ -1508,6 +1529,10 @@ function buildApCard() {
   const pane = $('.fold-pane[data-f="auto"]');
   if (pane) pane.appendChild(card); else $('.music').prepend(card);
   $('#ap-toggle').onclick = () => send({ type: 'autopilot', on: !(S.st && S.st.effects.autopilot.on) });
+  $('#ap-live').onclick = async () => {
+    if (!MU.running) await muStart();
+    if (MU.running) send({ type: 'autopilot', on: true, mood: 'auto' });
+  };
   $('#ap-spot').onchange = (e) => send({ type: 'autopilot', spot: e.target.checked });
   $('#ap-white').onchange = (e) => send({ type: 'autopilot', white: e.target.checked });
   $('#ap-lasers').onchange = (e) => send({ type: 'autopilot', lasers: e.target.checked });
@@ -1517,9 +1542,14 @@ function buildApCard() {
 function updateAutopilot(st) {
   if (AP.lang !== LANG) buildApCard();
   const ap = st.effects.autopilot || {}, pal = st.effects.palette || [];
-  const sig = JSON.stringify([ap, pal, LANG]);
+  const sig = JSON.stringify([ap.on, ap.mood, ap.spot, ap.white, ap.lasers, pal, LANG]);
   const beatAge = st.effects.beat_age;
   setText($('#ap-bpm'), ap.on ? (beatAge != null && beatAge < 3 && st.effects.bpm ? t('ap.bpm', { b: Math.round(st.effects.bpm) }) + (ap.mood === 'auto' && ap.now ? ` · ${t('ap.now', { m: t(`mood.${ap.now}`) })}` : '') : t('ap.nomusic')) : '');
+  if (ap.on && MU.running) {
+    const quiet = LANG === 'it' ? 'Silenzio · dissolvenza' : 'Cisza · wygaszanie';
+    const lost = LANG === 'it' ? 'Nessun segnale audio' : 'Brak sygnału audio';
+    if (!ap.signal || ap.audio_level < 0.02) setText($('#ap-bpm'), ap.signal ? quiet : lost);
+  }
   if (sig === AP.sig) return;
   AP.sig = sig;
   const tg = $('#ap-toggle');

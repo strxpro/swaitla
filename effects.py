@@ -183,6 +183,11 @@ class EffectEngine:
         self.reactions = {"flash": False, "color_step": False, "move_step": False, "strobe_drop": False}
         self.bpm: float | None = None
         self.last_beat = 0.0
+        self.audio_seen = False
+        self.audio_at = 0.0
+        self.audio_level = 0.0
+        self.audio_gain = 1.0
+        self._audio_tick = time.monotonic()
         self._palette_i = 0
         self._seq = 0
         self.palette: list[list[int]] = [list(c) for c in PALETTE[:6]]
@@ -230,6 +235,7 @@ class EffectEngine:
         if kind not in CATEGORY:
             raise ValueError(f"nieznany efekt {kind!r}")
         with self.engine.lock, self.lock:
+            transition = {i: dict(self.engine.fixtures[i].target) for i in self.engine.lights(targets)}
             if eid is None:
                 self._seq += 1
                 eid = f"fx{self._seq}"
@@ -239,6 +245,7 @@ class EffectEngine:
                 targets = self.laser_ids()                     # laser effects only ever drive lasers
             ids = self.engine.lights(targets)
             eff = Effect(eid, kind, targets, {**DEFAULTS[kind], **(params or {})}, duration)
+            eff.state["_blend"] = transition
             if eff.params.get("t_offset"):
                 eff.t0 -= max(0.0, float(eff.params["t_offset"]))
             for i in ids:
@@ -298,7 +305,21 @@ class EffectEngine:
                 self._stop_one(eid)
 
     # ---- beats -------------------------------------------------------------------
+    def audio(self, level: float) -> None:
+        """Continuous input, including silence; missing input fades out after 1 s."""
+        level = float(level)
+        if not math.isfinite(level):
+            return
+        with self.lock:
+            self.audio_seen = True
+            self.audio_at = time.monotonic()
+            self.audio_level = max(0.0, min(1.0, level))
+
     def beat(self, strength: float = 1.0, drop: bool = False, bpm: float | None = None) -> None:
+        with self.engine.lock, self.lock:
+            self._beat(strength, drop, bpm)
+
+    def _beat(self, strength: float, drop: bool, bpm: float | None) -> None:
         now = time.monotonic()
         if bpm:
             self.bpm = float(bpm)
@@ -324,12 +345,28 @@ class EffectEngine:
     def apply(self) -> None:
         now = time.monotonic()
         with self.lock:
+            dt = min(0.25, max(0.0, now - self._audio_tick))
+            self._audio_tick = now
+            live_level = self.audio_level if now - self.audio_at < 1.0 else 0.0
+            gain = min(1.0, live_level * 1.5) if self.audio_seen else 1.0
+            tau = 0.18 if gain > self.audio_gain else 0.7
+            self.audio_gain += (gain - self.audio_gain) * (1 - math.exp(-dt / tau))
+            if (self.autopilot["on"] and self.autopilot["mood"] == "auto"
+                    and self.audio_seen and self.audio_gain < 0.18 and self._auto_mood != "calm"):
+                self._auto_mood = "calm"
+                self._en_fast = self._en_slow = 0.0
+                self._ap_phrase()
             for eff in list(self.effects.values()):
                 t = now - eff.t0
                 if eff.duration is not None and t >= eff.duration:
                     self._stop_one(eff.id)
                     continue
-                ids = self._ordered(eff, [i for i in self.engine.lights(eff.targets) if i in eff.base])
+                live_ids = self.engine.lights(eff.targets)
+                # Newly added lights join an ongoing show without restarting it.
+                for fid in live_ids:
+                    if fid not in eff.base:
+                        eff.base[fid] = {k: self.engine.fixtures[fid].target[k] for k in eff.touched()}
+                ids = self._ordered(eff, live_ids)
                 for n, fid in enumerate(ids):
                     self._render(eff, fid, n, len(ids), t)
             for gid, g in list(self.groups.items()):
@@ -350,7 +387,8 @@ class EffectEngine:
             ids.reverse()
         elif order == "center":
             mid = (len(ids) - 1) / 2
-            ids = sorted(ids, key=lambda i: abs(ids.index(i) - mid))
+            ranks = {fid: n for n, fid in enumerate(ids)}
+            ids = sorted(ids, key=lambda i: abs(ranks[i] - mid))
         return ids
 
     def _speed(self, p: dict[str, Any]) -> float:
@@ -381,7 +419,7 @@ class EffectEngine:
         if env < 1.0:                                 # keyframe fade: blend previous look → effect
             saved = {k: f.target[k] for k in eff.touched()}
             self._render_raw(eff, f, fid, n, count, t)
-            base = eff.base[fid]
+            base = eff.state.get("_blend", {}).get(fid, eff.base[fid])
             for k in eff.touched():
                 if k == "cwheel":                     # colour wheel cannot blend: switch half-way
                     if env < 0.5:
@@ -391,6 +429,20 @@ class EffectEngine:
                 f.target[k] = b + (f.target[k] - b) * env
         else:
             self._render_raw(eff, f, fid, n, count, t)
+        if eff.id.startswith("ap-") and self.audio_seen:
+            if "dimmer" in eff.touched():
+                f.target["dimmer"] *= self.audio_gain
+            if "strobe" in eff.touched() and self.audio_gain < 0.15:
+                f.target["strobe"] = 0
+            if eff.category == "laser" and self.audio_gain < 0.15:
+                f.target["laser"] = f.current["laser"] = 0
+        if eff.id == "ap-hit" and count > 1:
+            pattern = (self._ap_beats // 8) % 3
+            selected = (n % 2 == self._ap_beats % 2 if pattern == 0 else
+                        n == self._ap_beats % count if pattern == 1 else
+                        n in (self._ap_beats % count, count - 1 - self._ap_beats % count))
+            if not selected:
+                f.target["dimmer"] *= 0.12
         if eff.kind in FAST_DIM:
             f.current["dimmer"] = f.target["dimmer"]
 
@@ -399,7 +451,15 @@ class EffectEngine:
         phase = n * p.get("spread", 0.0)
         k = eff.kind
         sp = self._speed(p)
-        cyc = sp * t + phase                                      # cycles done (+ per-fixture offset)
+        # Integrate live movement phase: changing BPM must not teleport the beam.
+        if eff.id == "ap-move":
+            last_t, cycles = eff.state.get("_phase", (0.0, 0.0))
+            sp *= 0.2 + 0.8 * self.audio_gain if self.audio_seen else 1.0
+            cycles += max(0.0, t - last_t) * sp
+            eff.state["_phase"] = (t, cycles)
+            cyc = cycles + phase
+        else:
+            cyc = sp * t + phase
         if eff.category == "laser":
             on = 1.0
             if k == "laser_hit":
@@ -626,11 +686,15 @@ class EffectEngine:
         mood = MOODS[mood_name]
         pal = [[255, 255, 255]] if self.autopilot.get("white") else (self.palette or [list(c) for c in PALETTE])
         calm = mood_name == "calm"
+        if calm:
+            for eid in ("ap-hit", "ap-drop", "ap-laser"):
+                self.stop(eid)
+        order = random.choice(["left", "right", "center"])
         mv = self._ap_pick("move", mood["move"])
         if mv:
             # a new movement blends in (slowly when it is calm) instead of jumping
             self.start(mv[0], {**mv[1], "fade_in": 60.0 / self.bpm * (4 if calm else 1) if self.bpm else 1.0,
-                               "ease": "smooth"}, "all", None, "ap-move")
+                               "ease": "smooth", "order": order}, "all", None, "ap-move")
         elif "ap-move" in self.effects:
             self.stop("ap-move")
         co = ("static_color", {}) if self.autopilot.get("white") else self._ap_pick("color", mood["color"])
@@ -641,13 +705,13 @@ class EffectEngine:
             self.start(co[0], prm, "all", None, "ap-color")
         di = self._ap_pick("dim", mood["dim"])
         if di:
-            self.start(di[0], di[1], "all", None, "ap-dim")
+            self.start(di[0], {**di[1], "order": order}, "all", None, "ap-dim")
         elif "ap-dim" in self.effects:
             self.stop("ap-dim")
 
     def _auto_follow(self, strength: float, drop: bool) -> None:
         """The music gets quieter / louder / faster: the style follows (calm -> dynamic -> dance -> hits / rave)."""
-        s = max(0.0, min(1.0, strength))
+        s = self.audio_level if self.audio_seen else max(0.0, min(1.0, strength))
         self._en_fast = self._en_fast * 0.8 + s * 0.2 if self._en_fast else s
         self._en_slow = self._en_slow * 0.97 + s * 0.03 if self._en_slow else s
         e, bpm = self._en_fast, self.bpm or 110
@@ -694,7 +758,10 @@ class EffectEngine:
     # ---- state for the UI -------------------------------------------------------------
     def state(self) -> dict[str, Any]:
         with self.lock:
-            ap_state = {**self.autopilot, "now": self._cur_mood()}
+            ap_state = {**self.autopilot, "now": self._cur_mood(),
+                        "audio_level": round(self.audio_level, 2),
+                        "signal": self.audio_seen and time.monotonic() - self.audio_at < 1.0,
+                        "intensity": round(self.audio_gain, 2)}
             active = [{"id": e.id, "kind": e.kind, "category": e.category, "ids": list(e.base)}
                       for e in self.effects.values() if "/" not in e.id]
             active += [{"id": gid, "kind": f"preset:{g['name']}", "category": "preset",

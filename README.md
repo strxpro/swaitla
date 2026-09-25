@@ -1,5 +1,29 @@
 # Lumo — światło sterowane dłonią
 
+## Pokaz na żywo i wiele lamp
+
+- W **Muzyka → Autopilot** wybierz wejście miksera i kliknij **Start pokazu na żywo**.
+  Tryb Auto dobiera styl do energii muzyki i wykrywanego BPM. Ciche fragmenty
+  łagodnie przygaszają światła i zwalniają ruch, a cisza lub utrata danych audio
+  wygasza automatyczne efekty. Przy powrocie sygnału jasność płynnie wraca.
+- Szybsze fragmenty wykorzystują naprzemienne lampy, pojedynczy pościg i pary
+  symetryczne. Ruch zachowuje fazę przy zmianie BPM. Tempo jest szacowane z
+  regularnych uderzeń; po przerwie detektor zbiera je ponownie.
+- W **Konfiguracja** na mapie połączeń użyj **Dodaj kopię wybranej lampy**.
+  Kopia dostaje pierwszy wolny zakres DMX; przy braku miejsca pojawi się błąd.
+  Ustaw ten sam adres i tryb kanałów na fizycznej lampie — zwykły DMX nie
+  programuje automatycznie jej panelu. Nowa lampa dołącza do efektów dla wszystkich.
+- **Shift + klik** na lampach zaznacza grupę. **Gesty → zaznaczone światła**
+  uruchamia wspólne sterowanie tą grupą; **Gesty → wszystkie światła** obejmuje
+  całą instalację. Pusta grupa niczego nie steruje. Lasery i dymiarki są pomijane.
+  Układ, zaznaczenie i zakres gestów zapisują się automatycznie.
+
+Analiza na żywo działa w otwartym panelu przeglądarki z dostępem do wejścia audio.
+Testy programowe obejmują ciszę, utratę sygnału, BPM, grupy i adresowanie;
+rzeczywiste oprawy i tor audio wymagają próby na docelowej instalacji.
+
+Testy: `python -m unittest discover -s tests -v` oraz `node --test tests/test_live_audio.cjs`.
+
 (dawniej PHOTON/HAND)
 
 Lokalna aplikacja (FastAPI + WebSocket + HTML5 Canvas) do sterowania wirtualnymi i fizycznymi
