@@ -1,0 +1,1026 @@
+{
+  "engine": {
+    "stage": {
+      "width": 10.0,
+      "depth": 8.0,
+      "truss_height": 5.0,
+      "aim_height": 1.2,
+      "quad": [
+        [
+          0.20945532435740513,
+          0.6083231334149327
+        ],
+        [
+          0.7210067319461444,
+          0.5287637698898409
+        ],
+        [
+          0.8724755201958384,
+          0.9865361077111383
+        ],
+        [
+          0.0015299877600978846,
+          0.9951040391676866
+        ]
+      ]
+    },
+    "grand_master": 255,
+    "position_smoothing": 0.85,
+    "active_id": 34,
+    "aim_mode": "direct",
+    "aim_span": [
+      270.0,
+      120.0
+    ],
+    "aim_box": [
+      0.3718,
+      0.2526,
+      0.7096,
+      0.641
+    ],
+    "value_smoothing": 0.9,
+    "motor_speed": 0,
+    "selection": [],
+    "short_frames": false
+  },
+  "fixtures": [
+    {
+      "id": 33,
+      "name": "Mini Gobo Moving Head",
+      "address": 1,
+      "model": "Tomshine Mini Gobo Moving Head",
+      "type": "moving_head",
+      "library_key": "qlc:tomshine-mini-gobo-moving-head",
+      "pan_16bit": true,
+      "tilt_16bit": true,
+      "has_rgb": false,
+      "channels": [
+        "pan",
+        "pan_fine",
+        "tilt",
+        "tilt_fine",
+        "speed",
+        "dimmer",
+        "shutter",
+        "cwheel",
+        "gobo",
+        "sound",
+        "reset"
+      ],
+      "icon_x": 0.25,
+      "icon_y": 0.22,
+      "pos": [
+        -2.0,
+        5.0,
+        -2.5
+      ],
+      "mount": "hang",
+      "yaw": 0.0,
+      "pan_deg": 540.0,
+      "tilt_deg": 230.0,
+      "invert_pan": true,
+      "invert_tilt": false,
+      "beam_deg": 14.0,
+      "flip_x": true,
+      "flip_y": false,
+      "enabled": true,
+      "aim_pan": null,
+      "aim_tilt": null,
+      "shutter_open": 3,
+      "strobe_min": 8,
+      "strobe_max": 255,
+      "wheel": [
+        [
+          3,
+          [
+            255,
+            255,
+            255
+          ],
+          "White"
+        ],
+        [
+          11,
+          [
+            255,
+            0,
+            0
+          ],
+          "Red"
+        ],
+        [
+          19,
+          [
+            0,
+            255,
+            0
+          ],
+          "Green"
+        ],
+        [
+          27,
+          [
+            0,
+            0,
+            255
+          ],
+          "Blue"
+        ],
+        [
+          35,
+          [
+            255,
+            255,
+            0
+          ],
+          "Yellow"
+        ],
+        [
+          43,
+          [
+            255,
+            170,
+            0
+          ],
+          "Orange"
+        ],
+        [
+          51,
+          [
+            0,
+            170,
+            255
+          ],
+          "Light Blue"
+        ],
+        [
+          59,
+          [
+            0,
+            255,
+            255
+          ],
+          "Cyan"
+        ],
+        [
+          67,
+          [
+            255,
+            255,
+            255
+          ],
+          "White/Red"
+        ],
+        [
+          75,
+          [
+            255,
+            0,
+            0
+          ],
+          "Red/Green"
+        ],
+        [
+          83,
+          [
+            0,
+            255,
+            0
+          ],
+          "Green/Blue"
+        ],
+        [
+          91,
+          [
+            0,
+            0,
+            255
+          ],
+          "Blue/Yellow"
+        ],
+        [
+          99,
+          [
+            255,
+            255,
+            0
+          ],
+          "Yellow/Orange"
+        ],
+        [
+          107,
+          [
+            255,
+            170,
+            0
+          ],
+          "Orange/LightBlue"
+        ],
+        [
+          115,
+          [
+            0,
+            170,
+            255
+          ],
+          "LightBlue/Cyan"
+        ],
+        [
+          123,
+          [
+            0,
+            255,
+            255
+          ],
+          "Cyan/White"
+        ]
+      ],
+      "gobos": [
+        [
+          3,
+          "Open"
+        ],
+        [
+          11,
+          "Double Lines Star"
+        ],
+        [
+          19,
+          "Square Arrows"
+        ],
+        [
+          27,
+          "Fan"
+        ],
+        [
+          35,
+          "Star"
+        ],
+        [
+          43,
+          "Stones"
+        ],
+        [
+          51,
+          "Eliptic"
+        ],
+        [
+          59,
+          "Caro Flower"
+        ],
+        [
+          159,
+          "Gobo Switch FWD"
+        ],
+        [
+          223,
+          "Gobo Switch REV"
+        ]
+      ],
+      "aim_points": {},
+      "caps": {
+        "6": [
+          [
+            0,
+            7,
+            "No function",
+            "",
+            null
+          ],
+          [
+            8,
+            99,
+            "Slow to fast",
+            "",
+            null
+          ],
+          [
+            100,
+            149,
+            "Fast to slow",
+            "",
+            null
+          ],
+          [
+            150,
+            199,
+            "Strobe Effect 1",
+            "strobe",
+            null
+          ],
+          [
+            200,
+            245,
+            "Strobe Effect 2",
+            "strobe",
+            null
+          ],
+          [
+            246,
+            255,
+            "Fastest Strobe Effect",
+            "strobe",
+            null
+          ]
+        ],
+        "7": [
+          [
+            0,
+            7,
+            "White",
+            "",
+            null
+          ],
+          [
+            8,
+            15,
+            "Red",
+            "",
+            null
+          ],
+          [
+            16,
+            23,
+            "Green",
+            "",
+            null
+          ],
+          [
+            24,
+            31,
+            "Blue",
+            "",
+            null
+          ],
+          [
+            32,
+            39,
+            "Yellow",
+            "",
+            null
+          ],
+          [
+            40,
+            47,
+            "Orange",
+            "",
+            null
+          ],
+          [
+            48,
+            55,
+            "Light Blue",
+            "",
+            null
+          ],
+          [
+            56,
+            63,
+            "Cyan",
+            "",
+            null
+          ],
+          [
+            64,
+            71,
+            "White/Red",
+            "",
+            null
+          ],
+          [
+            72,
+            79,
+            "Red/Green",
+            "",
+            null
+          ],
+          [
+            80,
+            87,
+            "Green/Blue",
+            "",
+            null
+          ],
+          [
+            88,
+            95,
+            "Blue/Yellow",
+            "",
+            null
+          ],
+          [
+            96,
+            103,
+            "Yellow/Orange",
+            "",
+            null
+          ],
+          [
+            104,
+            111,
+            "Orange/LightBlue",
+            "",
+            null
+          ],
+          [
+            112,
+            119,
+            "LightBlue/Cyan",
+            "",
+            null
+          ],
+          [
+            120,
+            127,
+            "Cyan/White",
+            "",
+            null
+          ],
+          [
+            128,
+            191,
+            "Color Change FWD",
+            "",
+            null
+          ],
+          [
+            192,
+            255,
+            "Color Change REV",
+            "",
+            null
+          ]
+        ],
+        "8": [
+          [
+            0,
+            7,
+            "Open",
+            "open",
+            null
+          ],
+          [
+            8,
+            15,
+            "Double Lines Star",
+            "",
+            null
+          ],
+          [
+            16,
+            23,
+            "Square Arrows",
+            "",
+            null
+          ],
+          [
+            24,
+            31,
+            "Fan",
+            "",
+            null
+          ],
+          [
+            32,
+            39,
+            "Star",
+            "",
+            null
+          ],
+          [
+            40,
+            47,
+            "Stones",
+            "",
+            null
+          ],
+          [
+            48,
+            55,
+            "Eliptic",
+            "",
+            null
+          ],
+          [
+            56,
+            63,
+            "Caro Flower",
+            "",
+            null
+          ],
+          [
+            64,
+            71,
+            "Open Shake",
+            "open",
+            null
+          ],
+          [
+            72,
+            79,
+            "Double Lines Star Shake",
+            "",
+            null
+          ],
+          [
+            80,
+            87,
+            "Square Arrows Shake",
+            "",
+            null
+          ],
+          [
+            88,
+            95,
+            "Fan Shake",
+            "",
+            null
+          ],
+          [
+            96,
+            103,
+            "Star Shake",
+            "",
+            null
+          ],
+          [
+            104,
+            111,
+            "Stones Shake",
+            "",
+            null
+          ],
+          [
+            112,
+            119,
+            "Eliptic Shake",
+            "",
+            null
+          ],
+          [
+            120,
+            127,
+            "Caro Flower Shake",
+            "",
+            null
+          ],
+          [
+            128,
+            191,
+            "Gobo Switch FWD",
+            "",
+            null
+          ],
+          [
+            192,
+            255,
+            "Gobo Switch REV",
+            "",
+            null
+          ]
+        ],
+        "9": [
+          [
+            0,
+            127,
+            "Manual",
+            "",
+            null
+          ],
+          [
+            128,
+            255,
+            "Auto Mode",
+            "auto",
+            null
+          ]
+        ],
+        "10": [
+          [
+            0,
+            240,
+            "No function",
+            "",
+            null
+          ],
+          [
+            241,
+            255,
+            "RESET",
+            "",
+            null
+          ]
+        ]
+      },
+      "defaults": null,
+      "values": {
+        "pan": 30120,
+        "tilt": 3305,
+        "dimmer": 123,
+        "strobe": 0,
+        "red": 255,
+        "green": 255,
+        "blue": 255,
+        "speed": 0,
+        "spin": 144,
+        "beam": 0,
+        "laser": 0,
+        "strip": 0,
+        "strip_speed": 0,
+        "macro": 0,
+        "aux1": 0,
+        "aux2": 0,
+        "cwheel": 3,
+        "gobo": 0
+      }
+    },
+    {
+      "id": 34,
+      "name": "Mini LED Spot Moving Head 11CH",
+      "address": 1,
+      "model": "Mini LED Spot Moving Head 11CH",
+      "type": "moving_head",
+      "library_key": "mini-spot-11",
+      "pan_16bit": true,
+      "tilt_16bit": true,
+      "has_rgb": false,
+      "channels": [
+        "pan",
+        "pan_fine",
+        "tilt",
+        "tilt_fine",
+        "cwheel",
+        "gobo",
+        "shutter",
+        "dimmer",
+        "speed",
+        "macro",
+        "none"
+      ],
+      "icon_x": 0.5,
+      "icon_y": 0.22,
+      "pos": [
+        3.75,
+        0.4,
+        -1.25
+      ],
+      "mount": "floor",
+      "yaw": 0.0,
+      "pan_deg": 540,
+      "tilt_deg": 230,
+      "invert_pan": true,
+      "invert_tilt": false,
+      "beam_deg": 12,
+      "flip_x": true,
+      "flip_y": false,
+      "enabled": true,
+      "aim_pan": null,
+      "aim_tilt": null,
+      "shutter_open": 10,
+      "strobe_min": 16,
+      "strobe_max": 131,
+      "wheel": [
+        [
+          9,
+          [
+            255,
+            255,
+            255
+          ],
+          "white"
+        ],
+        [
+          26,
+          [
+            255,
+            0,
+            0
+          ],
+          "red"
+        ],
+        [
+          44,
+          [
+            255,
+            230,
+            0
+          ],
+          "yellow"
+        ],
+        [
+          61,
+          [
+            80,
+            190,
+            255
+          ],
+          "light_blue"
+        ],
+        [
+          79,
+          [
+            0,
+            255,
+            0
+          ],
+          "green"
+        ],
+        [
+          96,
+          [
+            255,
+            120,
+            0
+          ],
+          "orange"
+        ],
+        [
+          114,
+          [
+            180,
+            0,
+            255
+          ],
+          "purple"
+        ],
+        [
+          131,
+          [
+            0,
+            40,
+            255
+          ],
+          "dark_blue"
+        ]
+      ],
+      "gobos": [
+        [
+          0,
+          "open"
+        ],
+        [
+          12,
+          "1"
+        ],
+        [
+          20,
+          "2"
+        ],
+        [
+          28,
+          "3"
+        ],
+        [
+          36,
+          "4"
+        ],
+        [
+          44,
+          "5"
+        ],
+        [
+          52,
+          "6"
+        ],
+        [
+          60,
+          "7"
+        ],
+        [
+          96,
+          "shake"
+        ],
+        [
+          192,
+          "rotate"
+        ]
+      ],
+      "aim_points": {},
+      "caps": null,
+      "defaults": null,
+      "values": {
+        "pan": 38660,
+        "tilt": 35789,
+        "dimmer": 41,
+        "strobe": 0,
+        "red": 255,
+        "green": 255,
+        "blue": 255,
+        "speed": 0,
+        "spin": 192,
+        "beam": 0,
+        "laser": 0,
+        "strip": 0,
+        "strip_speed": 0,
+        "macro": 0,
+        "aux1": 0,
+        "aux2": 0,
+        "cwheel": 9,
+        "gobo": 0
+      }
+    },
+    {
+      "id": 35,
+      "name": "Laser RG 8CH",
+      "address": 12,
+      "model": "Laser RG 8CH",
+      "type": "laser",
+      "library_key": "laser-8",
+      "pan_16bit": false,
+      "tilt_16bit": false,
+      "has_rgb": false,
+      "channels": [
+        "macro",
+        "laser_r",
+        "laser_g",
+        "speed",
+        "spin",
+        "none",
+        "none",
+        "none"
+      ],
+      "icon_x": 0.75,
+      "icon_y": 0.22,
+      "pos": [
+        0.25,
+        0.4,
+        -3.25
+      ],
+      "mount": "floor",
+      "yaw": 0.0,
+      "pan_deg": 540.0,
+      "tilt_deg": 270.0,
+      "invert_pan": false,
+      "invert_tilt": false,
+      "beam_deg": 4,
+      "flip_x": false,
+      "flip_y": false,
+      "enabled": false,
+      "aim_pan": null,
+      "aim_tilt": null,
+      "shutter_open": 0,
+      "strobe_min": 1,
+      "strobe_max": 255,
+      "wheel": null,
+      "gobos": null,
+      "aim_points": null,
+      "caps": null,
+      "defaults": null,
+      "values": {
+        "pan": 16128,
+        "tilt": 17949,
+        "dimmer": 132,
+        "strobe": 0,
+        "red": 0,
+        "green": 245,
+        "blue": 255,
+        "speed": 86,
+        "spin": 0,
+        "beam": 0,
+        "laser": 111,
+        "strip": 0,
+        "strip_speed": 0,
+        "macro": 0,
+        "aux1": 0,
+        "aux2": 0,
+        "cwheel": 12,
+        "gobo": 0
+      }
+    }
+  ],
+  "video": {
+    "source": 0,
+    "mirror": false,
+    "mode": "gesture"
+  },
+  "dmx": {
+    "backend": "opendmx",
+    "port": "COM3",
+    "ip": "255.255.255.255",
+    "universe": 0
+  },
+  "gestures": [],
+  "interaction": {
+    "scope": "active",
+    "follow_all": true,
+    "gcfg": {
+      "point": {
+        "on": true,
+        "gain": 3.0,
+        "target": "aim"
+      },
+      "dimmer": {
+        "on": true,
+        "gain": 1.0,
+        "target": "dimmer"
+      },
+      "crossfade": {
+        "on": true,
+        "gain": 1.0,
+        "target": "crossfade"
+      },
+      "strobe": {
+        "on": true,
+        "gain": 1.0,
+        "target": "strobe"
+      },
+      "color": {
+        "on": true,
+        "gain": 1.0,
+        "target": "hue"
+      },
+      "spin": {
+        "on": true,
+        "gain": 1.0,
+        "target": "spin"
+      },
+      "full": {
+        "on": true,
+        "gain": 1.0,
+        "target": "full"
+      }
+    },
+    "relative": true
+  },
+  "stagecam": {
+    "source": null,
+    "mirror": false,
+    "quad": [
+      [
+        0.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    "follow_target": "all"
+  },
+  "show": {
+    "palette": [
+      [
+        255,
+        40,
+        40
+      ],
+      [
+        255,
+        140,
+        0
+      ],
+      [
+        255,
+        230,
+        0
+      ],
+      [
+        40,
+        255,
+        90
+      ],
+      [
+        0,
+        200,
+        255
+      ],
+      [
+        40,
+        90,
+        255
+      ]
+    ],
+    "mood": "dynamic",
+    "spot": true
+  },
+  "hand_filter": {
+    "mincutoff": 3.2,
+    "beta": 0.25
+  },
+  "bindings": [
+    {
+      "id": "h7zebe",
+      "code": "KeyF",
+      "action": "flash",
+      "mode": "press",
+      "params": {}
+    }
+  ],
+  "looks": [],
+  "smoke": {
+    "level": 255,
+    "auto": {
+      "on": false,
+      "every": 180.0,
+      "dur": 4.0
+    }
+  }
+}

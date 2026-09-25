@@ -1,0 +1,514 @@
+[
+  {
+    "key": "mini-spot-9",
+    "brand": "Tomshine",
+    "model": "Mini LED Spot Moving Head 9CH",
+    "type": "moving_head",
+    "notes": "Tomshine 30/60W: 1 pan 540°, 2 tilt 230°, 3 koło kolorów (0-139 kolory, 140-255 tęcza), 4 gobo (0-63 stałe, 64-127 drżenie, 128-255 obrót), 5 strobe (8-15 otwarte, 16-131 strobe), 6 jasność, 7 prędkość P/T (0 = najszybciej), 8 auto (0-59 = DMX), 9 reset (nieużywany)",
+    "channels": [
+      "pan",
+      "tilt",
+      "cwheel",
+      "gobo",
+      "shutter",
+      "dimmer",
+      "speed",
+      "macro",
+      "none"
+    ],
+    "pan_deg": 540,
+    "tilt_deg": 230,
+    "beam_deg": 12,
+    "shutter_open": 10,
+    "strobe_min": 16,
+    "strobe_max": 131,
+    "mount": "floor",
+    "wheel": [
+      [
+        9,
+        [
+          255,
+          255,
+          255
+        ],
+        "white"
+      ],
+      [
+        26,
+        [
+          255,
+          0,
+          0
+        ],
+        "red"
+      ],
+      [
+        44,
+        [
+          255,
+          230,
+          0
+        ],
+        "yellow"
+      ],
+      [
+        61,
+        [
+          80,
+          190,
+          255
+        ],
+        "light_blue"
+      ],
+      [
+        79,
+        [
+          0,
+          255,
+          0
+        ],
+        "green"
+      ],
+      [
+        96,
+        [
+          255,
+          120,
+          0
+        ],
+        "orange"
+      ],
+      [
+        114,
+        [
+          180,
+          0,
+          255
+        ],
+        "purple"
+      ],
+      [
+        131,
+        [
+          0,
+          40,
+          255
+        ],
+        "dark_blue"
+      ]
+    ],
+    "gobos": [
+      [
+        0,
+        "open"
+      ],
+      [
+        12,
+        "1"
+      ],
+      [
+        20,
+        "2"
+      ],
+      [
+        28,
+        "3"
+      ],
+      [
+        36,
+        "4"
+      ],
+      [
+        44,
+        "5"
+      ],
+      [
+        52,
+        "6"
+      ],
+      [
+        60,
+        "7"
+      ],
+      [
+        96,
+        "shake"
+      ],
+      [
+        192,
+        "rotate"
+      ]
+    ]
+  },
+  {
+    "key": "mini-spot-11",
+    "brand": "Tomshine",
+    "model": "Mini LED Spot Moving Head 11CH",
+    "type": "moving_head",
+    "notes": "Tomshine 30/60W, 16-bit: pan, pan fine, tilt, tilt fine, koło kolorów, gobo, strobe, jasność, prędkość, auto (0-59 = DMX), reset (nieużywany)",
+    "channels": [
+      "pan",
+      "pan_fine",
+      "tilt",
+      "tilt_fine",
+      "cwheel",
+      "gobo",
+      "shutter",
+      "dimmer",
+      "speed",
+      "macro",
+      "none"
+    ],
+    "pan_16bit": true,
+    "tilt_16bit": true,
+    "pan_deg": 540,
+    "tilt_deg": 230,
+    "beam_deg": 12,
+    "shutter_open": 10,
+    "strobe_min": 16,
+    "strobe_max": 131,
+    "mount": "floor",
+    "wheel": [
+      [
+        9,
+        [
+          255,
+          255,
+          255
+        ],
+        "white"
+      ],
+      [
+        26,
+        [
+          255,
+          0,
+          0
+        ],
+        "red"
+      ],
+      [
+        44,
+        [
+          255,
+          230,
+          0
+        ],
+        "yellow"
+      ],
+      [
+        61,
+        [
+          80,
+          190,
+          255
+        ],
+        "light_blue"
+      ],
+      [
+        79,
+        [
+          0,
+          255,
+          0
+        ],
+        "green"
+      ],
+      [
+        96,
+        [
+          255,
+          120,
+          0
+        ],
+        "orange"
+      ],
+      [
+        114,
+        [
+          180,
+          0,
+          255
+        ],
+        "purple"
+      ],
+      [
+        131,
+        [
+          0,
+          40,
+          255
+        ],
+        "dark_blue"
+      ]
+    ],
+    "gobos": [
+      [
+        0,
+        "open"
+      ],
+      [
+        12,
+        "1"
+      ],
+      [
+        20,
+        "2"
+      ],
+      [
+        28,
+        "3"
+      ],
+      [
+        36,
+        "4"
+      ],
+      [
+        44,
+        "5"
+      ],
+      [
+        52,
+        "6"
+      ],
+      [
+        60,
+        "7"
+      ],
+      [
+        96,
+        "shake"
+      ],
+      [
+        192,
+        "rotate"
+      ]
+    ]
+  },
+  {
+    "key": "beam-bar-26",
+    "brand": "Generic",
+    "model": "Bee-Eye Bar 26CH",
+    "type": "bar",
+    "notes": "6 x beam + bee-eye + laser + LED strip (instrukcja: DMX Channel Table 26CH)",
+    "channels": [
+      "pan",
+      "speed",
+      "spin",
+      "beam",
+      "beam",
+      "beam",
+      "beam",
+      "beam",
+      "beam",
+      "dimmer",
+      "shutter",
+      "red",
+      "green",
+      "blue",
+      "white",
+      "red",
+      "green",
+      "blue",
+      "white",
+      "laser_r",
+      "laser_g",
+      "aux1",
+      "aux2",
+      "strip",
+      "strip_speed",
+      "macro"
+    ],
+    "pan_deg": 540,
+    "tilt_deg": 90,
+    "beam_deg": 8,
+    "shutter_open": 0,
+    "strobe_min": 10,
+    "strobe_max": 255,
+    "mount": "floor"
+  },
+  {
+    "key": "dragonfly-21",
+    "brand": "Generic",
+    "model": "Little Dragonfly 4-in-1 21CH",
+    "type": "derby",
+    "channels": [
+      "pan",
+      "speed",
+      "beam",
+      "beam",
+      "beam",
+      "beam",
+      "dimmer",
+      "shutter",
+      "red",
+      "green",
+      "blue",
+      "white",
+      "red",
+      "green",
+      "blue",
+      "white",
+      "laser_r",
+      "laser_g",
+      "aux1",
+      "strip",
+      "macro"
+    ],
+    "pan_deg": 360,
+    "tilt_deg": 90,
+    "beam_deg": 30,
+    "shutter_open": 0,
+    "strobe_min": 10,
+    "strobe_max": 255,
+    "mount": "floor"
+  },
+  {
+    "key": "moving-effect-16",
+    "brand": "Generic",
+    "model": "Moving Effect 16CH",
+    "type": "moving_head",
+    "channels": [
+      "pan",
+      "tilt",
+      "speed",
+      "dimmer",
+      "shutter",
+      "red",
+      "green",
+      "blue",
+      "white",
+      "red",
+      "green",
+      "blue",
+      "strip",
+      "macro",
+      "macro",
+      "none"
+    ],
+    "pan_deg": 540,
+    "tilt_deg": 180,
+    "beam_deg": 25,
+    "shutter_open": 0,
+    "strobe_min": 10,
+    "strobe_max": 255,
+    "mount": "floor"
+  },
+  {
+    "key": "moving-head-9",
+    "brand": "Generic",
+    "model": "Moving Head 9CH (16-bit pan/tilt)",
+    "type": "moving_head",
+    "channels": [
+      "pan",
+      "pan_fine",
+      "tilt",
+      "tilt_fine",
+      "dimmer",
+      "shutter",
+      "red",
+      "green",
+      "blue"
+    ],
+    "pan_16bit": true,
+    "tilt_16bit": true,
+    "pan_deg": 540,
+    "tilt_deg": 270,
+    "beam_deg": 14,
+    "shutter_open": 0,
+    "strobe_min": 1,
+    "strobe_max": 255,
+    "mount": "hang"
+  },
+  {
+    "key": "par-rgbw-4",
+    "brand": "Generic",
+    "model": "PAR LED RGBW 4CH",
+    "type": "par",
+    "channels": [
+      "red",
+      "green",
+      "blue",
+      "white"
+    ],
+    "beam_deg": 40,
+    "mount": "floor"
+  },
+  {
+    "key": "par-rgbw-7",
+    "brand": "Generic",
+    "model": "PAR LED RGBW 7CH (dimmer + strobe)",
+    "type": "par",
+    "channels": [
+      "dimmer",
+      "red",
+      "green",
+      "blue",
+      "white",
+      "shutter",
+      "macro"
+    ],
+    "beam_deg": 40,
+    "shutter_open": 0,
+    "strobe_min": 10,
+    "strobe_max": 255,
+    "mount": "floor"
+  },
+  {
+    "key": "strobe-2",
+    "brand": "Generic",
+    "model": "Strobe LED 2CH",
+    "type": "strobe",
+    "channels": [
+      "dimmer",
+      "shutter"
+    ],
+    "beam_deg": 60,
+    "shutter_open": 0,
+    "strobe_min": 10,
+    "strobe_max": 255,
+    "mount": "floor"
+  },
+  {
+    "key": "smoke-1",
+    "brand": "Generic",
+    "model": "Wytwornica dymu 1CH",
+    "type": "smoke",
+    "channels": [
+      "dimmer"
+    ],
+    "beam_deg": 45,
+    "mount": "floor"
+  },
+  {
+    "key": "smoke-3",
+    "brand": "Generic",
+    "model": "Wytwornica dymu 3CH (dym + LED)",
+    "type": "smoke",
+    "channels": [
+      "dimmer",
+      "red",
+      "green"
+    ],
+    "beam_deg": 45,
+    "mount": "floor"
+  },
+  {
+    "key": "laser-8",
+    "brand": "Generic",
+    "model": "Laser RG 8CH",
+    "type": "laser",
+    "channels": [
+      "macro",
+      "laser_r",
+      "laser_g",
+      "speed",
+      "spin",
+      "none",
+      "none",
+      "none"
+    ],
+    "beam_deg": 4,
+    "mount": "floor"
+  }
+]

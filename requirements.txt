@@ -1,0 +1,14 @@
+# PHOTON//HAND — Python 3.10+ (tested on 3.14 with the versions below)
+fastapi>=0.110
+uvicorn[standard]>=0.29       # includes the 'websockets' / 'httptools' extras
+websockets>=12
+numpy>=1.24
+mediapipe>=0.10.14            # Hand Landmarker (Tasks API); pulls in opencv-contrib-python
+opencv-contrib-python>=4.8    # contrib build = TrackerCSRT / TrackerKCF (do NOT also install opencv-python)
+
+# --- optional: physical DMX output -------------------------------------------
+pyserial>=3.5                 # ENTTEC DMX USB Pro / FTDI Open DMX (COM fallback)
+ftd2xx>=1.3                   # FTDI Open DMX through the native D2XX driver (preferred)
+pyusb>=1.2                    # uDMX (Anyma) USB-DMX cable
+libusb-package>=1.0           # bundled libusb-1.0 DLL for pyusb
+# stupidArtnet>=1.4           # only if ARTNET_USE_STUPIDARTNET = True (built-in Art-Net needs nothing)

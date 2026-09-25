@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lumo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%237b3ff2%22/%3E%3Cstop offset=%221%22 stop-color=%22%231fb6c9%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22url%28%23g%29%22/%3E%3Cpath class=%22lb%22 d=%22M13.2 12.6h5.6L25 25.6H7Z%22 fill=%22%23fff%22 opacity=%22.34%22/%3E%3Cellipse class=%22lf%22 cx=%2216%22 cy=%2225.6%22 rx=%229%22 ry=%222.3%22 fill=%22%23fff%22 opacity=%22.6%22/%3E%3Ccircle cx=%2216%22 cy=%2210%22 r=%224.8%22 fill=%22%23fff%22/%3E%3Ccircle cx=%2216%22 cy=%2210%22 r=%221.9%22 fill=%22%237b3ff2%22/%3E%3C/svg%3E">
+<meta name="theme-color" content="#7b3ff2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/style.css?v=4.8">
+<link rel="stylesheet" href="/static/ui.css?v=4.8">
+  <link rel="stylesheet" href="/static/library.css?v=4.8">
+  <link rel="stylesheet" href="/static/motion.css?v=4.8">
+  <link rel="stylesheet" href="/static/theme.css?v=4.8">
+</head>
+<body>
+<div id="boot" class="boot" role="status" aria-live="polite">
+  <style>
+    .boot { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; overflow: hidden;
+      background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #f3f0ff 45%, #e6f5fa 100%);
+      font-family: 'Figtree', 'Segoe UI', system-ui, sans-serif; color: #16161d; transition: opacity .5s ease, visibility .5s, transform .5s ease; }
+    .boot.out { opacity: 0; visibility: hidden; transform: scale(1.03); }
+    .boot-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .boot-stage { position: relative; width: 150px; height: 150px; display: grid; place-items: center; }
+    .boot-ring { position: absolute; inset: 0; transform: rotate(-90deg); }
+    .boot-ring circle { fill: none; stroke-width: 5; stroke-linecap: round; }
+    .boot-ring .bg { stroke: #e6e1f6; }
+    .boot-ring .fg { stroke: url(#boot-rg); stroke-dasharray: 440; stroke-dashoffset: 405; transition: stroke-dashoffset .6s cubic-bezier(.2, .8, .2, 1); }
+    .boot .logo-svg { width: 84px; height: 84px; border-radius: 24px; box-shadow: 0 20px 44px -16px rgba(123, 63, 242, .6); animation: bootPop .9s cubic-bezier(.34, 1.56, .64, 1) both; }
+    .boot .logo-svg .lb { transform-origin: 16px 12px; animation: bootBeam 2.2s ease-in-out infinite; }
+    .boot .logo-svg .lf { transform-origin: 16px 25.6px; animation: bootSpot 2.2s ease-in-out infinite; }
+    .boot-glow { position: absolute; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(123, 63, 242, .18), rgba(31, 182, 201, 0) 65%); animation: bootGlow 3s ease-in-out infinite; }
+    .boot h1 { margin: 4px 0 0; font-size: 34px; font-weight: 800; letter-spacing: -.03em; display: flex; }
+    .boot h1 span { display: inline-block; animation: bootLetter .6s cubic-bezier(.34, 1.56, .64, 1) both; }
+    .boot h1 span:nth-child(2) { animation-delay: .08s; } .boot h1 span:nth-child(3) { animation-delay: .16s; } .boot h1 span:nth-child(4) { animation-delay: .24s; }
+    .boot p { margin: -6px 0 0; color: #5d6470; font-size: 14.5px; animation: bootUp .6s .35s both; }
+    .boot-bar { display: none; } .boot-bar i { display: block; }
+    .boot small { color: #7c8594; font-size: 13px; min-height: 18px; animation: bootUp .6s .45s both; }
+    .boot small.err { color: #d93036; }
+    @keyframes bootPop { from { transform: scale(.5) rotate(-12deg); opacity: 0; } }
+    @keyframes bootUp { from { transform: translateY(10px); opacity: 0; } }
+    @keyframes bootLetter { from { transform: translateY(18px) scale(.8); opacity: 0; } }
+    @keyframes bootBeam { 0%, 100% { transform: rotate(-9deg); opacity: .22; } 50% { transform: rotate(9deg); opacity: .5; } }
+    @keyframes bootSpot { 0%, 100% { transform: translateX(-2.4px) scaleX(.8); } 50% { transform: translateX(2.4px) scaleX(1.05); } }
+    @keyframes bootGlow { 0%, 100% { transform: scale(.9); opacity: .7; } 50% { transform: scale(1.1); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .boot * { animation: none !important; } }
+  </style>
+  <div class="boot-in">
+    <div class="boot-stage"><div class="boot-glow"></div>
+      <svg class="boot-ring" viewBox="0 0 150 150"><defs><linearGradient id="boot-rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7b3ff2"/><stop offset="1" stop-color="#1fb6c9"/></linearGradient></defs>
+        <circle class="bg" cx="75" cy="75" r="70"/><circle class="fg" id="boot-ring" cx="75" cy="75" r="70"/></svg>
+      <svg class="logo-svg" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg-boot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7b3ff2"/><stop offset="1" stop-color="#1fb6c9"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg-boot)"/><path class="lb" d="M13.2 12.6h5.6L25 25.6H7Z" fill="#fff" opacity=".34"/><ellipse class="lf" cx="16" cy="25.6" rx="9" ry="2.3" fill="#fff" opacity=".6"/><circle cx="16" cy="10" r="4.8" fill="#fff"/><circle cx="16" cy="10" r="1.9" fill="#7b3ff2"/></svg></div>
+    <h1><span>L</span><span>u</span><span>m</span><span>o</span></h1>
+    <p id="boot-tag">Światło, które słucha Twojej dłoni</p>
+    <div class="boot-bar"><i id="boot-bar"></i></div>
+    <small id="boot-msg">Uruchamianie…</small>
+  </div>
+  <script>
+    (function () {
+      try {                                             // interface preferences (Ustawienia → Wygląd i start)
+        var de = document.documentElement, z = localStorage.getItem('ph_zoom');
+        if (z && z !== '100') de.style.zoom = String(Number(z) / 100);
+        if (localStorage.getItem('ph_calm') === '1') de.classList.add('calm');
+        if (localStorage.getItem('ph_hints') === '0') de.classList.add('nohints');
+      } catch (e) { /* private mode */ }
+      var it = (localStorage.getItem('ph_lang') === 'it');
+      var T = it ? { tag: 'La luce che ascolta la tua mano', start: 'Avvio…', ws: 'Collegamento al programma…', state: 'Carico luci e impostazioni…', ready: 'Pronto', err: 'Il programma non risponde. È avviato (run.bat)?' }
+                 : { tag: 'Światło, które słucha Twojej dłoni', start: 'Uruchamianie…', ws: 'Łączenie z programem…', state: 'Wczytywanie lamp i ustawień…', ready: 'Gotowe', err: 'Program nie odpowiada. Czy jest uruchomiony (run.bat)?' };
+      var el = document.getElementById('boot'), bar = document.getElementById('boot-bar'), msg = document.getElementById('boot-msg');
+      document.getElementById('boot-tag').textContent = T.tag; msg.textContent = T.start;
+      var t0 = performance.now(), done = false, rg = document.getElementById('boot-ring');
+      var ring = function (p) { if (rg) rg.style.strokeDashoffset = String(440 - 440 * Math.max(8, Math.min(100, p)) / 100); };
+      window.LumoBoot = {
+        step: function (k, pct) { if (done) return; msg.textContent = T[k] || k; msg.className = ''; bar.style.width = pct + '%'; ring(pct); },
+        fail: function () { if (done) return; msg.textContent = T.err; msg.className = 'err'; },
+        done: function () {
+          if (done) return; done = true; bar.style.width = '100%'; ring(100); msg.textContent = T.ready; msg.className = '';
+          var wait = Math.max(0, 900 - (performance.now() - t0));        // long enough to be seen, never in the way
+          setTimeout(function () { el.classList.add('out'); setTimeout(function () { el.remove(); }, 600); }, wait + 200);
+        },
+      };
+      setTimeout(function () { if (!done) window.LumoBoot.fail(); }, 9000);
+    })();
+  </script>
+</div>
+
+<header class="top3">
+  <div class="top-l">
+    <div class="brand3"><svg class="logo-svg" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg-top" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7b3ff2"/><stop offset="1" stop-color="#1fb6c9"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg-top)"/><path class="lb" d="M13.2 12.6h5.6L25 25.6H7Z" fill="#fff" opacity=".34"/><ellipse class="lf" cx="16" cy="25.6" rx="9" ry="2.3" fill="#fff" opacity=".6"/><circle cx="16" cy="10" r="4.8" fill="#fff"/><circle cx="16" cy="10" r="1.9" fill="#7b3ff2"/></svg><b>Lumo</b></div>
+    <div class="quick">
+      <button class="key" id="q-spot"><span class="led"></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 5h-4zM10 8l-5 12M14 8l5 12M5 20h14"/></svg><span class="kt"><b data-i18n="q.spot">Reflektor</b><small data-i18n="q.spotS">na osobę</small></span></button>
+      <button class="key" id="q-auto"><span class="led"></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16c2-6 4-9 6-9s3 10 5 10 3-5 5-7M4 20h16"/></svg><span class="kt"><b data-i18n="q.auto">Autopilot</b><small id="q-mood" data-i18n="q.autoS">z muzyką</small></span></button>
+    </div>
+  </div>
+  <nav class="tabs3" id="tabs" role="tablist">
+    <span class="lens" id="tab-ink"></span>
+    <button role="tab" data-tab="scene" class="on"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9L12 3ZM3 7.5 12 12l9-4.5M12 12v9"/></svg><span data-i18n="tab.scene">Scena</span></button>
+    <button role="tab" data-tab="hand"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-6.5a1.5 1.5 0 0 1 3 0V11m0-5a1.5 1.5 0 0 1 3 0v7.5c0 4.1-2.9 7.5-6.6 7.5-2.3 0-3.9-1-5.3-3L3.9 14a1.6 1.6 0 0 1 2.4-2L8 13.6"/></svg><span data-i18n="tab.hand">Dłoń</span></button>
+    <button role="tab" data-tab="mixer"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18M12 3v18M18 3v18M3.5 13h5v3h-5zM9.5 7h5v3h-5zM15.5 15h5v3h-5z"/></svg><span data-i18n="tab.mixer">Mikser</span></button>
+    <button role="tab" data-tab="stagecam"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h9A1.5 1.5 0 0 1 15 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 16.5zM15 10.5l6-3.5v10l-6-3.5"/></svg><span data-i18n="tab.stagecam">Kamera sceny</span></button>
+    <button role="tab" data-tab="music"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg><span data-i18n="tab.music">Muzyka</span></button>
+    <button role="tab" data-tab="setup"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M4 12h6M4 18h10M19.5 6a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM15.5 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM19.5 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/></svg><span data-i18n="tab.setup">Ustawienia</span></button>
+  </nav>
+  <div class="top-r">
+  <div class="chain" id="chain">
+    <button class="node" data-node="video"><span class="dot"></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h9A1.5 1.5 0 0 1 15 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 16.5zM15 10.5l6-3.5v10l-6-3.5"/></svg><span class="nt"><b data-i18n="pill.camera">Kamera</b><small id="cn-video">—</small></span></button>
+    <i class="link"></i>
+    <button class="node" data-node="vision"><span class="dot"></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-6.5a1.5 1.5 0 0 1 3 0V11m0-5a1.5 1.5 0 0 1 3 0v7.5c0 4.1-2.9 7.5-6.6 7.5-2.3 0-3.9-1-5.3-3L3.9 14a1.6 1.6 0 0 1 2.4-2L8 13.6"/></svg><span class="nt"><b data-i18n="pill.vision">Wizja</b><small id="cn-vision">—</small></span></button>
+    <i class="link"></i>
+    <button class="node" data-node="dmx"><span class="dot"></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"/></svg><span class="nt"><b data-i18n="pill.dmx">DMX</b><small id="cn-dmx">—</small></span></button>
+    <i class="link"></i>
+    <button class="node" data-node="fixture"><span class="dot"></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8v4H8zM7 7h10l-1.5 6h-7zM10 13l-3 8M14 13l3 8"/></svg><span class="nt"><b data-i18n="pill.fixture">Lampy</b><small id="cn-fixture">—</small></span></button>
+  </div>
+    <button class="icon-btn" id="tour-btn" data-tip="guide"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM9.6 9.3a2.5 2.5 0 1 1 3.6 2.3c-.8.4-1.2.9-1.2 1.7v.4M12 16.8v.2"/></svg></button>
+    <div class="lang" id="lang"><button data-lang="pl" class="on">PL</button><button data-lang="it">IT</button></div>
+  </div>
+  <div class="pg" hidden><b id="pg-title"></b><span id="pg-desc"></span></div>
+</header>
+
+<main class="view">
+  <!-- ======================================================== SCENA 3D -->
+  <section class="tab-page on" data-page="scene">
+    <div class="stage3d" id="stage3d">
+      <div class="labels3d" id="labels3d"></div>
+
+      <div class="float tl row">
+        <button class="btn primary" id="add-device" data-i18n="scene.add">+ Dodaj urządzenie</button>
+        <button class="btn" id="sel-all" data-i18n="scene.selAll">Zaznacz wszystkie</button>
+        <span class="sel-info" id="sel-info"></span>
+      </div>
+      <div class="float tr seg" id="view-tabs">
+        <button data-view="foh" data-i18n="view.front">Przód</button><button data-view="top" data-i18n="view.top">Góra</button>
+        <button data-view="side" data-i18n="view.side">Bok</button><button data-view="fx" data-i18n="view.fx">Lampa</button>
+      </div>
+      <div class="float bl hint" id="scene-hint" data-i18n="scene.hint">Przeciągnij lampę = przesuń · klik = wybierz · Shift+klik na podłogę = celuj · PPM = przesuń widok</div>
+
+      <div class="empty" id="scene-empty" hidden>
+        <div class="empty-ico">
+          <svg viewBox="0 0 64 64" width="56" height="56" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="20" y="6" width="24" height="8" rx="1"/><path d="M24 14v10M40 14v10"/>
+            <rect x="22" y="24" width="20" height="16" rx="3"/><path d="M26 40 14 60M38 40l12 20" stroke-dasharray="3 3"/>
+          </svg>
+        </div>
+        <h2 data-i18n="scene.empty.title">Scena jest pusta</h2>
+        <p data-i18n="scene.empty.text">Wybierz model urządzenia, a potem kliknij na scenie, gdzie stoi albo wisi.</p>
+        <div class="row center">
+          <button class="btn primary" id="scene-wiz"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg><span data-i18n="cf.sceneBtn">Konfigurator — wszystko automatycznie</span></button>
+          <button class="btn" id="add-device-2" data-i18n="scene.add">+ Dodaj urządzenie</button>
+        </div>
+      </div>
+
+      <div class="placing" id="placing" hidden><span data-i18n="scene.placing">Kliknij na scenie, gdzie ma stać urządzenie</span> · <kbd>Esc</kbd></div>
+
+      <aside class="inspector" id="inspector" hidden>
+        <div class="insp-head">
+          <span class="dot" id="insp-dot"></span>
+          <input id="insp-name" maxlength="24" spellcheck="false" aria-label="Nazwa">
+          <button class="icon" id="insp-close" title="Zamknij">✕</button>
+        </div>
+        <div class="insp-row"><label data-i18n="insp.address">Adres DMX</label><input id="insp-addr" type="number" min="1" max="512"></div>
+        <div class="insp-row"><label data-i18n="insp.mount">Montaż</label>
+          <div class="seg sm" id="insp-mount"><button data-m="hang" data-i18n="insp.hang">Wisząca</button><button data-m="floor" data-i18n="insp.floor">Stojąca</button></div></div>
+        <div class="insp-row"><label data-i18n="insp.height">Wysokość</label><input id="insp-h" type="range" min="0" max="12" step="0.1"><b class="mono" id="insp-h-v"></b></div>
+        <div class="insp-row"><label data-i18n="insp.yaw">Obrót</label>
+          <div class="seg sm" id="insp-yaw"><button data-y="0" data-i18n="dir.front">Przód</button><button data-y="90" data-i18n="dir.right">Prawo</button><button data-y="180" data-i18n="dir.back">Tył</button><button data-y="-90" data-i18n="dir.left">Lewo</button></div></div>
+        <div class="insp-row"><label data-i18n="insp.pos">Pozycja</label><span class="mono muted" id="insp-pos">—</span></div>
+        <div class="insp-foot">
+          <button class="btn primary" id="insp-wiz"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg><span>Kalibruj</span></button>
+          <button class="btn" id="insp-more" data-i18n="insp.profile">Wszystkie ustawienia</button>
+          <button class="btn danger-t" id="insp-del" data-i18n="insp.delete">Usuń</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ======================================================== DŁOŃ -->
+  <section class="tab-page" data-page="hand">
+    <div class="hand-stage" id="hand-stage">
+      <canvas id="video-canvas"></canvas>
+      <div class="float tl seg" id="mode-tabs">
+        <button data-mode="gesture" data-i18n="mode.gesture">Gesty</button><button data-mode="track" data-i18n="mode.track">Śledzenie</button><button data-mode="manual" data-i18n="mode.manual">Ręcznie</button>
+      </div>
+      <div class="float track-tools row" id="track-tools" hidden>
+        <button class="btn sm primary" id="trk-auto"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0"/></svg><span data-i18n="trk.auto">Śledź osobę</span></button>
+        <button class="btn sm" id="trk-clear"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg><span data-i18n="trk.clear">Zwolnij</span></button>
+      </div>
+      <div class="float tr row">
+        <label class="switch"><input type="checkbox" id="show-cam"><span></span><i data-i18n="hand.camera">Obraz kamery</i></label>
+        <button class="btn sm handui" id="handui" title="Sterowanie interfejsem dłonią"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 7-6 2-2 6z"/></svg><span data-i18n="handui.off">Sterowanie dłonią</span></button>
+        <button class="btn sm" id="handui-cal" title="Kalibruj zasięg dłoni" data-i18n="hh.handcal">Kalibruj dłoń</button>
+        <button class="btn sm" id="floor-cal" data-i18n="hand.floorcal">Kalibruj podłogę</button>
+      </div>
+      <div class="float bl hint mono" id="hand-hint">—</div>
+      <aside class="glist" id="glist"></aside>
+      <div class="gbig" id="gbig" hidden><b></b><small></small></div>
+    </div>
+  </section>
+
+  <!-- ======================================================== MIKSER -->
+  <section class="tab-page" data-page="mixer">
+    <div class="fold mix-fold">
+      <aside class="fold-nav" id="fold-mixer"></aside>
+      <div class="fold-main">
+        <div class="fold-pane" data-f="simple"><div id="simple-ctl" class="simple"></div></div>
+        <div class="fold-pane fill" data-f="desk">
+          <div class="desk noside" id="desk">
+      <div class="desk-bar">
+        <span class="desk-t"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18M12 3v18M18 3v18M3.5 13h5v3h-5zM9.5 7h5v3h-5zM15.5 15h5v3h-5z"/></svg><b data-i18n="dk.mode">Widok</b></span>
+        <div class="bank-keys" id="desk-bank"></div>
+        <div class="desk-opts">
+          <button class="okey" id="desk-compact"><i class="led"></i><span data-i18n="dk.compact">Kompakt</span></button>
+        </div>
+      </div>
+            <div class="desk-main">
+      <div class="desk-surface">
+          <div class="cheek l"></div>
+          <div class="desk-strips" id="desk-strips"></div>
+          <div class="cheek r"></div>
+        </div>
+            </div>
+          </div>
+        </div>
+        <div class="fold-pane" data-f="looks"><header class="fold-h"><h2 data-i18n="f.mixer.looks"></h2><p data-i18n="f.mixer.looks.d"></p></header>
+      <div class="card looks-card">
+            <div class="card-h"><span data-i18n="lk.title">Sceny świateł</span><span class="row"><span class="muted lk-hint" data-i18n="lk.hint">klik = przywróć z płynnym przejściem</span>
+              <button class="btn sm primary" id="lk-save"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="lk.save">Zapisz obecny wygląd</span></button></span></div>
+            <div class="looks" id="looks"></div>
+          </div>
+        </div>
+        <div class="fold-pane" data-f="color"><header class="fold-h"><h2 data-i18n="f.mixer.color"></h2><p data-i18n="f.mixer.color.d"></p></header>
+      <div class="card tools-card">
+            <div class="card-h"><span data-i18n="dk.tools">Aktywna lampa</span><span class="muted mono"><b id="prog-title">—</b> <span id="prog-sub"></span></span></div>
+            <div class="pads">
+              <div class="pad"><div class="fg-t">Pan / Tilt</div><canvas id="xy-pad"></canvas><div class="mono muted" id="xy-read">—</div></div>
+            <div class="pad"><div class="fg-t">Kolor</div><canvas id="color-wheel"></canvas><div class="swatches" id="swatches"></div></div>
+            <div class="pad wheel-slots" id="wheel-slots" hidden></div>
+            <div class="pad-btns">
+              <button class="btn" id="home-active"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10ZM12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg><span>Środek</span></button>
+              <button class="btn" id="home-all"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10ZM12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg><span>Środek — wszystkie</span></button>
+              <button class="btn danger-t" id="zero"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg><span>Zeruj wszystko</span></button>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== KAMERA SCENY -->
+  <section class="tab-page" data-page="stagecam">
+    <div class="sc">
+      <div class="sc-view" id="sc-view">
+        <img id="sc-img" alt="">
+        <canvas id="sc-canvas"></canvas>
+        <div class="float tr row" id="sc-tools" hidden>
+          <button class="btn sm" id="sc-floor" data-i18n="sc.floor">Kalibruj podłogę</button>
+          <label class="switch dark"><input type="checkbox" id="sc-mirror"><span></span><i data-i18n="sc.mirror">Lustro</i></label>
+          <button class="btn sm danger-t" id="sc-off" data-i18n="sc.off">Wyłącz kamerę</button>
+        </div>
+        <div class="float bl hint sc-hint" id="sc-hint"></div>
+        <div class="empty" id="sc-empty">
+          <div class="empty-ico">
+            <svg viewBox="0 0 64 64" width="56" height="56" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="6" y="18" width="36" height="28" rx="3"/><path d="M42 26l14-8v28l-14-8"/><circle cx="24" cy="32" r="7"/>
+            </svg>
+          </div>
+          <h2 data-i18n="sc.empty.title">Druga kamera — cała scena</h2>
+          <p data-i18n="sc.empty.text">Postaw drugą kamerę tak, żeby widziała całą scenę.</p>
+          <div class="lbl" data-i18n="sc.pick">Wybierz kamerę</div>
+          <div class="rowp center" id="sc-cams"></div>
+          <div class="lbl" data-i18n="sc.url">albo adres telefonu (Wi-Fi)</div>
+          <div class="rowp center"><input type="text" id="sc-url" placeholder="http://192.168.1.X:8080/video" style="flex:1">
+            <button class="btn primary" id="sc-go" data-i18n="sc.connect">Połącz</button></div>
+        </div>
+      </div>
+      <aside class="sc-side">
+        <div class="card"><div class="card-h"><span data-i18n="sc.map">Mapa sceny (widok z góry)</span></div><canvas id="sc-map"></canvas></div>
+        <div class="card sc-list-card">
+          <div class="card-h"><span data-i18n="sc.list">Osoby i obiekty</span>
+            <span class="seg sm" id="sc-target"><button data-v="active" data-i18n="sc.tActive">aktywna lampa</button><button data-v="all" data-i18n="sc.tAll">wszystkie lampy</button></span></div>
+          <div class="sc-list" id="sc-list"></div>
+        </div>
+        <div class="sc-det" id="sc-det"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ======================================================== MUZYKA -->
+  <section class="tab-page" data-page="music">
+    <div class="music fold">
+      <aside class="fold-nav" id="fold-music"></aside>
+      <div class="fold-main">
+        <div class="fold-pane" data-f="auto"><header class="fold-h"><h2 data-i18n="f.music.auto"></h2><p data-i18n="f.music.auto.d"></p></header></div>
+        <div class="fold-pane" data-f="live"><header class="fold-h"><h2 data-i18n="f.music.live"></h2><p data-i18n="f.music.live.d"></p></header>
+      <div class="card mu-live">
+        <div class="card-h"><span data-i18n="mu.live">Na żywo — kabel z miksera</span>
+          <span class="row"><span class="beat-led" id="mu-led"></span><b class="mono bpm" id="mu-bpm">— BPM</b></span></div>
+        <div class="card-b">
+          <div class="rowp"><select id="mu-dev" style="flex:1"></select><button class="btn primary" id="mu-start">Start</button></div>
+          <canvas id="mu-spec"></canvas>
+          <div class="lvl"><i id="mu-lvl"></i></div>
+          <label class="rowp lbl"><span data-i18n="mu.sens">Czułość bitu</span>
+            <input type="range" id="mu-sens" min="1.15" max="2.2" step="0.05" value="1.45" style="flex:1"></label>
+          <div class="grp"><span class="lbl" data-i18n="mu.react">Reakcja świateł na bit</span>
+            <div class="react" id="mu-react">
+              <button data-r="flash"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span data-i18n="mu.r.flash">Flash na bit</span></button>
+              <button data-r="color_step"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11Z"/></svg><span data-i18n="mu.r.color">Kolor na bit</span></button>
+              <button data-r="move_step"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span data-i18n="mu.r.move">Ruch na bit</span></button>
+              <button data-r="strobe_drop"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg><span data-i18n="mu.r.drop">Strobe na dropie</span></button>
+            </div></div>
+          <p class="hint" data-i18n="mu.hint">Podłącz wyjście miksera (REC / BOOTH / AUX) do wejścia liniowego komputera albo karty dźwiękowej, wybierz je na liście i kliknij Start.</p>
+        </div>
+      </div>
+        </div>
+        <div class="fold-pane" data-f="fx"><header class="fold-h"><h2 data-i18n="f.music.fx"></h2><p data-i18n="f.music.fx.d"></p></header>
+      <div class="card mu-pad">
+        <div class="card-h"><span data-i18n="mu.fx">Efekty — kliknij, aby włączyć / wyłączyć</span><button class="btn sm danger-t" id="pad-stop" data-i18n="mu.stopall">Stop wszystkie</button></div>
+        <div class="card-b">
+          <div class="fx-pad" id="fx-pad"></div>
+          <div class="rowp">
+            <label class="lbl rowp"><span data-i18n="mu.speed">Tempo</span> <input type="range" id="pad-speed" min="0.25" max="3" step="0.05" value="1"></label>
+            <label class="lbl rowp"><span data-i18n="mu.size">Zasięg ruchu</span> <input type="range" id="pad-size" min="0.2" max="2.5" step="0.05" value="1"></label>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="fold-pane wide" data-f="timeline">
+      <div class="card mu-tl">
+        <div class="card-h">
+          <span data-i18n="mu.tl">Oś czasu — pokaz zsynchronizowany z utworem</span>
+          <span class="muted mono" id="tl-info">—</span>
+        </div>
+        <div class="tl-bar">
+          <label class="btn primary file"><input type="file" id="tl-file" accept="audio/*,.mp3,.wav,.flac,.ogg,.m4a" hidden><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg><span data-i18n="mu.load">Wczytaj utwór</span></label>
+          <button class="btn primary" id="tl-play"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14l12-7z"/></svg><span>Odtwórz</span></button>
+          <button class="btn" id="tl-stop" title="Stop"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12v12H6z"/></svg></button>
+          <b class="mono" id="tl-time">0:00 / 0:00</b>
+          <button class="btn" id="tl-auto"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg><span data-i18n="mu.auto">Auto-show z bitów</span></button>
+          <button class="btn sm danger-t" id="tl-clear" data-i18n="mu.clear">Wyczyść</button>
+          <span class="grow"></span>
+          <input type="text" id="tl-name" placeholder="nazwa pokazu" style="width:170px">
+          <button class="btn" id="tl-save"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5zM8 3v6h8V3M8 21v-7h8v7"/></svg><span data-i18n="mu.save">Zapisz</span></button>
+          <select id="tl-shows" style="width:190px"></select>
+          <button class="btn sm" id="tl-load" data-i18n="mu.open">Otwórz</button>
+          <button class="btn sm danger-t" id="tl-delete" data-i18n="mu.del">Usuń</button>
+        </div>
+        <div class="tl-tools" id="tl-tools"></div>
+        <canvas id="tl-canvas"></canvas>
+        <div class="tl-props" id="tl-props"></div>
+      </div>
+        </div>
+        <div class="fold-pane" data-f="shows"><header class="fold-h"><h2 data-i18n="f.music.shows"></h2><p data-i18n="f.music.shows.d"></p></header><div id="mu-shows"></div></div>
+        <div class="fold-pane" data-f="mine"><header class="fold-h"><h2 data-i18n="f.music.mine"></h2><p data-i18n="f.music.mine.d"></p></header><div id="mu-mine"></div></div>
+        <div class="fold-pane" data-f="adv"><header class="fold-h"><h2 data-i18n="f.music.adv"></h2><p data-i18n="f.music.adv.d"></p></header><div id="mu-adv"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== USTAWIENIA -->
+  <section class="tab-page" data-page="setup">
+    <div class="setup2">
+      <aside class="steps" id="steps"></aside>
+      <div class="step-main">
+        <div class="step-pane" data-step="home">
+          <header class="step-h"><h2 data-i18n="st.home.t"></h2><p data-i18n="st.home.d"></p></header>
+          <div id="st-home"></div>
+        </div>
+        <div class="step-pane" data-step="library">
+          <header class="step-h"><h2 data-i18n="st.library.t"></h2><p data-i18n="st.library.d"></p></header>
+          <div id="st-library"></div>
+        </div>
+        <div class="step-pane" data-step="dmxcal">
+          <header class="step-h"><h2 data-i18n="st.dmxcal.t"></h2><p data-i18n="st.dmxcal.d"></p></header>
+          <div id="st-dmxcal"></div>
+        </div>
+        <div class="step-pane" data-step="wizard">
+          <header class="step-h"><h2 data-i18n="st.wizard.t"></h2><p data-i18n="st.wizard.d"></p></header>
+          <div id="st-wizard"></div>
+        </div>
+        <div class="step-pane" data-step="overview">
+          <header class="step-h"><h2 data-i18n="st.overview.t"></h2><p data-i18n="st.overview.d"></p></header>
+          <div id="st-overview" class="ov"></div>
+        </div>
+        <div class="step-pane" data-step="dmx">
+          <header class="step-h"><h2 data-i18n="st.dmx.t"></h2><p data-i18n="st.dmx.d"></p></header>
+          <div id="st-doctor"></div>
+          <section class="sgroup"><div class="card-b" id="card-dmx"></div></section>
+          <div id="st-dmx"></div>
+        </div>
+        <div class="step-pane" data-step="lamps">
+          <header class="step-h"><h2 data-i18n="st.lamps.t"></h2><p data-i18n="st.lamps.d"></p></header>
+          <div id="st-addr"></div>
+          <div id="st-lamps"></div>
+        </div>
+        <div class="step-pane" data-step="camera">
+          <header class="step-h"><h2 data-i18n="st.camera.t"></h2><p data-i18n="st.camera.d"></p></header>
+          <div id="st-cams"></div>
+          <div class="st-2col"><section class="sgroup"><h3 data-i18n="st.cam.main">Kamera główna — ustawienia</h3><div class="card-b" id="card-video"></div></section><canvas id="st-cam" class="st-preview"></canvas></div>
+        </div>
+        <div class="step-pane" data-step="lampcal">
+          <header class="step-h"><h2 data-i18n="st.lampcal.t"></h2><p data-i18n="st.lampcal.d"></p></header>
+          <div id="st-lampcal"></div>
+        </div>
+        <div class="step-pane" data-step="hand">
+          <header class="step-h"><h2 data-i18n="st.hand.t"></h2><p data-i18n="st.hand.d"></p></header>
+          <div id="st-hand"></div>
+        </div>
+        <div class="step-pane" data-step="track">
+          <header class="step-h"><h2 data-i18n="st.track.t"></h2><p data-i18n="st.track.d"></p></header>
+          <div id="st-track"></div>
+        </div>
+        <div class="step-pane" data-step="stage">
+          <header class="step-h"><h2 data-i18n="st.stage.t"></h2><p data-i18n="st.stage.d"></p></header>
+          <div id="st-stage"></div>
+        </div>
+        <div class="step-pane" data-step="control">
+          <header class="step-h"><h2 data-i18n="st.control.t"></h2><p data-i18n="st.control.d"></p></header>
+          <div id="st-control"></div>
+        </div>
+        <div class="step-pane" data-step="speed">
+          <header class="step-h"><h2 data-i18n="st.speed.t"></h2><p data-i18n="st.speed.d"></p></header>
+          <div id="st-speed"></div>
+        </div>
+        <div class="step-pane" data-step="keys">
+          <header class="step-h"><h2 data-i18n="st.keys.t"></h2><p data-i18n="st.keys.d"></p></header>
+          <div id="st-keys"></div>
+        </div>
+        <div class="step-pane" data-step="effects">
+          <header class="step-h"><h2 data-i18n="st.effects.t"></h2><p data-i18n="st.effects.d"></p></header>
+          <div id="st-effects"></div>
+        </div>
+        <div class="step-pane" data-step="general">
+          <header class="step-h"><h2 data-i18n="st.general.t"></h2><p data-i18n="st.general.d"></p></header>
+          <div id="st-general"></div>
+        </div>
+        <div class="step-pane" data-step="ui">
+          <header class="step-h"><h2 data-i18n="st.ui.t"></h2><p data-i18n="st.ui.d"></p></header>
+          <div id="st-ui"></div>
+        </div>
+        <div class="step-pane" data-step="backup">
+          <header class="step-h"><h2 data-i18n="st.backup.t"></h2><p data-i18n="st.backup.d"></p></header>
+          <div id="st-backup"></div>
+        </div>
+        <div class="step-pane" data-step="diag">
+          <header class="step-h"><h2 data-i18n="st.diag.t"></h2><p data-i18n="st.diag.d"></p></header>
+          <div id="st-diag"></div>
+        </div>
+        <div class="step-pane" data-step="adv">
+          <header class="step-h"><h2 data-i18n="st.adv.t"></h2><p data-i18n="st.adv.d"></p></header>
+          <div class="card wide" data-card="test">
+            <div class="card-h"><span data-i18n="test.title">Test kanałów DMX — sprawdź, co robi każdy kanał lampy</span>
+              <span class="row">
+                <label class="lbl"><span data-i18n="test.start">Adres startowy</span> <input type="number" id="test-start" min="1" max="512" value="1" style="width:70px"></label>
+                <label class="lbl"><span data-i18n="test.count">Kanałów</span> <input type="number" id="test-count" min="1" max="32" value="11" style="width:60px"></label>
+                <button class="btn sm" id="test-fill" data-i18n="test.fromfx">Z aktywnej lampy</button>
+                <button class="btn sm amber-t" id="test-clear" data-i18n="test.clear">Zakończ test</button>
+                <button class="btn sm primary" id="test-wiz"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg><span>Kalibruj</span></button>
+              </span>
+            </div>
+            <div class="test-grid" id="test-grid"></div>
+            <p class="hint test-hint" data-i18n="test.hint">Przesuwaj po kolei suwak każdego kanału i patrz na lampę.</p>
+          </div>
+          <div class="card wide"><div class="card-h"><span>Wyjście DMX · universe 1</span><span class="muted mono" id="mon-meta"></span></div><div class="monitor mono" id="monitor"></div></div>
+        
+        </div>
+      </div>
+    </div>
+  </section>
+  <button class="bo-banner" id="bo-banner" hidden>
+    <b data-i18n="bo.title">Blackout — światła są wygaszone</b>
+    <small data-i18n="bo.hint">Kliknij tutaj albo naciśnij B, żeby włączyć światło</small>
+  </button>
+  <aside class="rail" id="rail">
+    <div class="rail-h"><b id="rail-name">—</b><small id="rail-addr"></small></div>
+    <div class="rail-faders" id="rail-faders"></div>
+    <div class="rail-sw" id="rail-sw"></div>
+  </aside>
+</main>
+
+<footer class="dock">
+  <div class="fx-chips" id="fx-chips"></div>
+  <div class="dock-r">
+    <label class="master"><span>Master</span><input type="range" id="gm" min="0" max="255"><b class="mono" id="gm-v">100%</b></label>
+    <button class="key smoke-key" id="smoke-key" hidden><span class="led"></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.4-8 5.5 5.5 0 0 1 10.7-1A4.5 4.5 0 0 1 17 18zM6 21h12"/></svg><span class="kt"><b data-i18n="dock.smoke">Dym</b><small id="smoke-sub" data-i18n="dock.smokeS">przytrzymaj</small></span></button>
+    <button class="btn laser" id="lasers" data-i18n="dock.lasersOff">Lasery wyłączone</button>
+    <button class="blackout" id="blackout"><span data-i18n="dock.blackout">Blackout</span> <kbd>B</kbd></button>
+  </div>
+</footer>
+
+<dialog id="fx-dialog">
+  <form method="dialog" id="fx-form">
+    <div class="dlg-h"><span id="fx-title">Lampa</span></div>
+    <div class="dlg-cols">
+      <div class="form">
+        <div class="sec wide">Profil DMX (z instrukcji lampy)</div>
+        <label>Nazwa<input name="name" required maxlength="24"></label>
+        <label>Adres DMX (jak na lampie)<input name="address" type="number" min="1" max="512" required></label>
+        <label class="chk"><input type="checkbox" name="pan_16bit"> Pan 16-bit (fine)</label>
+        <label class="chk"><input type="checkbox" name="tilt_16bit"> Tilt 16-bit (fine)</label>
+        <label class="chk"><input type="checkbox" name="has_rgb"> RGB</label>
+        <span></span>
+        <label class="wide">Kolejność kanałów (puste = auto)
+          <input name="channels" placeholder="pan,pan_fine,tilt,tilt_fine,speed,dimmer,shutter,red,green,blue" spellcheck="false">
+        </label>
+        <p class="wide hint mono">pan pan_fine tilt tilt_fine dimmer shutter red green blue white speed none const:N</p>
+        <label>Shutter = otwarty<input name="shutter_open" type="number" min="0" max="255"></label>
+        <label>Strobe wolny … szybki
+          <span class="pair"><input name="strobe_min" type="number" min="0" max="255"><input name="strobe_max" type="number" min="0" max="255"></span></label>
+        <label>Zakres pan °<input name="pan_deg" type="number" min="90" max="720"></label>
+        <label>Zakres tilt °<input name="tilt_deg" type="number" min="90" max="360"></label>
+        <label class="chk"><input type="checkbox" name="invert_pan"> Odwróć pan</label>
+        <label class="chk"><input type="checkbox" name="invert_tilt"> Odwróć tilt</label>
+        <label>Kąt wiązki °<input name="beam_deg" type="number" min="1" max="60" step="0.5"></label>
+      </div>
+      <div class="form">
+        <div class="sec wide">Pozycja na scenie</div>
+        <canvas id="place-plan" class="wide" title="Kliknij, aby ustawić pozycję"></canvas>
+        <div class="wide seg" id="mount-tabs"><button type="button" data-m="hang">Wisząca</button><button type="button" data-m="floor">Stojąca</button></div>
+        <label>X lewo/prawo [m]<input name="px" type="number" step="0.1"></label>
+        <label>Wysokość [m]<input name="py" type="number" step="0.1" min="0"></label>
+        <label>Z tył(−)/przód(+) [m]<input name="pz" type="number" step="0.1"></label>
+        <label>Obrót bazy °<input name="yaw" type="number" step="1"></label>
+        <div class="wide autocal" id="autocal-box">
+          <button type="button" class="btn amber-t" id="autocal-btn">Auto-kalibracja kamerą</button>
+          <span class="hint">Kamera sama wyznaczy pozycję i obrót. Skieruj światło na podłogę widoczną w kamerze i przyciemnij salę. Wymaga prawdziwej lampy i kalibracji podłogi.</span>
+        </div>
+      </div>
+    </div>
+    <div class="dlg-f">
+      <button class="btn" value="cancel" formnovalidate>Anuluj</button>
+      <button class="btn primary" value="ok">Zapisz</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="pick-dialog">
+  <div class="dlg-h"><span data-i18n="pick.title">Wybierz urządzenie</span></div>
+  <div class="picker" id="picker"></div>
+  <div class="dlg-f">
+    <button class="btn" id="pick-custom" data-i18n="pick.custom">Własny profil…</button>
+    <button class="btn" id="pick-cancel" data-i18n="btn.cancel">Anuluj</button>
+  </div>
+</dialog>
+
+<dialog id="wiz-dialog"><div class="wiz" id="wiz"></div></dialog>
+
+<dialog id="gest-dialog">
+  <div class="dlg-h">Nowy gest</div>
+  <div class="form one">
+    <p class="hint">Pokaż gest przed kamerą i trzymaj go nieruchomo przez 2 sekundy. Potem wystarczy go pokazać, żeby akcja się wykonała.</p>
+    <label>Nazwa gestu<input id="g-name" maxlength="30" placeholder="np. rock"></label>
+    <label>Co ma robić<select id="g-action">
+      <option value="blackout">Blackout (wł./wył.)</option>
+      <option value="full">Pełna jasność</option>
+      <option value="dark">Wygaś</option>
+      <option value="flash">Flash</option>
+      <option value="strobe">Strobe (2 s)</option>
+      <option value="home">Pozycja środkowa</option>
+      <option value="next_fixture">Następna lampa</option>
+      <option value="color">Kolor…</option>
+      <option value="effect">Efekt…</option>
+      <option value="stop_effects">Zatrzymaj efekty</option>
+    </select></label>
+    <label id="g-color-row" hidden>Kolor<input type="color" id="g-color" value="#ff0040"></label>
+    <label id="g-effect-row" hidden>Efekt…<select id="g-effect"></select></label>
+  </div>
+  <div class="dlg-f"><button class="btn" id="g-cancel">Anuluj</button><button class="btn primary" id="g-rec">Nagraj</button></div>
+</dialog>
+<div class="rec-ov" id="rec-ov" hidden><b id="rec-title"></b><em id="rec-left"></em></div>
+
+<div class="hand-cursor" id="hand-cursor" hidden><i></i><u></u><s></s></div>
+<div class="hui-cal" id="hui-cal" hidden><b data-i18n="handui.calTitle">Kalibracja dłoni</b><span id="hui-cal-msg"></span><em id="hui-cal-t"></em></div>
+<div class="toasts" id="toasts"></div>
+
+<script type="importmap">
+  { "imports": { "three": "/static/vendor/three.module.min.js", "three/addons/": "/static/vendor/addons/" } }
+</script>
+<script src="/static/i18n_it.js?v=4.8"></script>
+<script src="/static/icons.js?v=4.8"></script>
+<script src="/static/app.js?v=4.8"></script>
+<script src="/static/music.js?v=4.8"></script>
+<script src="/static/stagecam.js?v=4.8"></script>
+<script src="/static/setup.js?v=4.8"></script>
+<script src="/static/wizard.js?v=4.8"></script>
+<script src="/static/doctor.js?v=4.8"></script>
+<script src="/static/holohand.js?v=4.8"></script>
+<script src="/static/library.js?v=4.8"></script>
+<script src="/static/simple.js?v=4.8"></script>
+<script src="/static/handtools.js?v=4.8"></script>
+<script src="/static/connmap.js?v=4.8"></script>
+<script src="/static/gestures2.js?v=4.8"></script>
+<script src="/static/keys.js?v=4.8"></script>
+<script src="/static/tracklist.js?v=4.8"></script>
+<script src="/static/chedit.js?v=4.8"></script>
+<script src="/static/desk.js?v=4.8"></script>
+<script src="/static/folders.js?v=4.8"></script>
+<script src="/static/mufolders.js?v=4.8"></script>
+<script src="/static/tour.js?v=4.8"></script>
+<script src="/static/fx.js?v=4.8"></script>
+<script type="module" src="/static/stage3d.js?v=4.8"></script>
+</body>
+</html>
