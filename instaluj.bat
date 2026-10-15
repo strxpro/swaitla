@@ -78,6 +78,7 @@ echo   Jesli nie - sterownik "CDM" ze strony ftdichip.com (Drivers - VCP / D2XX)
 echo   Kamera z telefonu: Iriun Webcam / DroidCam na telefonie i na komputerze.
 echo.
 if defined PH_NO_PIP exit /b 0
+if defined LUMO_FROM_RUN exit /b 0
 choice /C TN /M "  Uruchomic Lumo teraz"
 if errorlevel 2 exit /b 0
 start "" "%~dp0run.bat"

@@ -29,6 +29,13 @@
   });
 
   const NON_LIGHT = ['smoke'];
+  // names from the lamp's profile are often English codes: say them in plain words
+  const NICE = { white: ['biały', 'bianco'], red: ['czerwony', 'rosso'], green: ['zielony', 'verde'], blue: ['niebieski', 'blu'],
+    yellow: ['żółty', 'giallo'], orange: ['pomarańczowy', 'arancione'], purple: ['fioletowy', 'viola'], violet: ['fioletowy', 'viola'],
+    pink: ['różowy', 'rosa'], magenta: ['purpurowy', 'magenta'], cyan: ['turkusowy', 'ciano'], amber: ['bursztynowy', 'ambra'],
+    light_blue: ['jasnoniebieski', 'azzurro'], dark_blue: ['granatowy', 'blu scuro'], light_green: ['jasnozielony', 'verde chiaro'],
+    uv: ['UV', 'UV'], open: ['otwarte', 'aperto'], shake: ['drżenie', 'vibrazione'], rotate: ['obrót', 'rotazione'], rainbow: ['tęcza', 'arcobaleno'] };
+  const nice = (name) => { const k = String(name).trim().toLowerCase().replace(/[\s-]+/g, '_'); return NICE[k] ? NICE[k][PH.lang === 'it' ? 1 : 0] : String(name); };
   const laserIdx = (f, role) => f.channels.map((r, i) => (r === role ? i : -1)).filter((i) => i >= 0);
   function laserBlock(f, st) {
     const ov = f.overrides || {}, on = (f.values.laser || 0) > 0;
@@ -100,9 +107,9 @@
     if (F.dim) right.push(blk(t('sm.dim'), slider('dimmer', f.values.dimmer || 0, '0%', '100%'), 'dim'));
     if (F.rgb) right.push(blk(t('sm.color'), `<div class="sm-sw">${SW.map((c) => `<button data-rgb="${c}" style="--c:${c}"></button>`).join('')}<label class="sm-pickc"><input type="color" id="sm-color" value="#ffffff">${ic('palette')}</label></div>
       ${F.white.length ? `<div class="sm-sub"><small>${esc(t('sm.white'))}</small>${slider('white', (f.overrides || {})[F.white[0]] ?? 0)}</div>` : ''}`));
-    if (F.wheel) right.push(blk(t('sm.wheel'), `<div class="sm-tiles">${F.wheel.map(([v, rgb, name]) => `<button data-set="cwheel:${v}" title="${esc(name)}"><i style="background:rgb(${rgb.join(',')})"></i><small>${esc(String(name).slice(0, 10))}</small></button>`).join('')}</div>`));
+    if (F.wheel) right.push(blk(t('sm.wheel'), `<div class="sm-tiles">${F.wheel.map(([v, rgb, name]) => `<button data-set="cwheel:${v}" title="${esc(name)}"><i style="background:rgb(${rgb.join(',')})"></i><small>${esc(nice(name).slice(0, 14))}</small></button>`).join('')}</div>`));
     if (F.strobe) right.push(blk(t('sm.strobe'), slider('strobe', f.values.strobe || 0, t('sm.off'), t('sm.fast'))));
-    if (F.gobo && F.gobo.length) right.push(blk(t('sm.gobo'), `<div class="sm-tiles">${F.gobo.map(([v, name]) => `<button data-set="gobo:${v}" title="${esc(name)}">${ic('gobo')}<small>${esc(String(name).slice(0, 10))}</small></button>`).join('')}</div>`));
+    if (F.gobo && F.gobo.length) right.push(blk(t('sm.gobo'), `<div class="sm-tiles">${F.gobo.map(([v, name]) => `<button data-set="gobo:${v}" title="${esc(name)}">${ic('gobo')}<small>${esc(nice(name).slice(0, 14))}</small></button>`).join('')}</div>`));
     for (const [k, i] of [['zoom', F.zoom], ['focus', F.focus], ['iris', F.iris]]) if (i !== undefined) right.push(blk(t('sm.' + k), slider(`ch:${i}`, (f.overrides || {})[i] ?? 0)));
     const btns = [];
     if (F.prism) btns.push(`<button class="sm-tog${(f.overrides || {})[F.prism[0]] ? ' on' : ''}" data-tog="${F.prism[0]}:${mid(F.prism[1], 128)}">${ic('diamond')}<span>${esc(t('sm.prism'))}</span></button>`);

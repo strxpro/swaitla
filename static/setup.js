@@ -1003,7 +1003,7 @@
   }
 
   /* ---- look and start (saved in this browser) */
-  const TABS = ['scene', 'hand', 'mixer', 'stagecam', 'music', 'setup'];
+  const TABS = ['show', 'scene', 'hand', 'mixer', 'stagecam', 'music', 'setup'];
   function paneUi(st, force) {
     const box = $('#st-ui');
     const z = ls('ph_zoom') || '100', calm = ls('ph_calm') === '1', start = ls('ph_start_tab') || 'last', hints = ls('ph_hints') !== '0', cam = ls('ph_showcam') === '1';

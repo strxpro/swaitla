@@ -4,56 +4,52 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lumo</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%237b3ff2%22/%3E%3Cstop offset=%221%22 stop-color=%22%231fb6c9%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22url%28%23g%29%22/%3E%3Cpath class=%22lb%22 d=%22M13.2 12.6h5.6L25 25.6H7Z%22 fill=%22%23fff%22 opacity=%22.34%22/%3E%3Cellipse class=%22lf%22 cx=%2216%22 cy=%2225.6%22 rx=%229%22 ry=%222.3%22 fill=%22%23fff%22 opacity=%22.6%22/%3E%3Ccircle cx=%2216%22 cy=%2210%22 r=%224.8%22 fill=%22%23fff%22/%3E%3Ccircle cx=%2216%22 cy=%2210%22 r=%221.9%22 fill=%22%237b3ff2%22/%3E%3C/svg%3E">
-<meta name="theme-color" content="#7b3ff2">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%236c4ff2%22/%3E%3Cstop offset=%221%22 stop-color=%22%232e1f8f%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22url%28%23g%29%22/%3E%3Cpath class=%22lb%22 d=%22M13.2 12.6h5.6L25 25.6H7Z%22 fill=%22%23fff%22 opacity=%22.34%22/%3E%3Cellipse class=%22lf%22 cx=%2216%22 cy=%2225.6%22 rx=%229%22 ry=%222.3%22 fill=%22%23fff%22 opacity=%22.6%22/%3E%3Ccircle cx=%2216%22 cy=%2210%22 r=%224.8%22 fill=%22%23fff%22/%3E%3Ccircle cx=%2216%22 cy=%2210%22 r=%221.9%22 fill=%22%234729d4%22/%3E%3C/svg%3E">
+<meta name="theme-color" content="#f6f5f2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="/static/style.css?v=4.8">
-<link rel="stylesheet" href="/static/ui.css?v=4.8">
-  <link rel="stylesheet" href="/static/library.css?v=4.8">
-  <link rel="stylesheet" href="/static/motion.css?v=4.8">
-  <link rel="stylesheet" href="/static/theme.css?v=4.8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/style.css?v=5.0">
+<link rel="stylesheet" href="/static/ui.css?v=5.0">
+  <link rel="stylesheet" href="/static/library.css?v=5.0">
+  <link rel="stylesheet" href="/static/motion.css?v=5.0">
+  <link rel="stylesheet" href="/static/theme.css?v=5.0">
+  <link rel="stylesheet" href="/static/lux.css?v=5.0">
 </head>
-<body>
+<body data-tab="show">
 <div id="boot" class="boot" role="status" aria-live="polite">
   <style>
-    .boot { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; overflow: hidden;
-      background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #f3f0ff 45%, #e6f5fa 100%);
-      font-family: 'Figtree', 'Segoe UI', system-ui, sans-serif; color: #16161d; transition: opacity .5s ease, visibility .5s, transform .5s ease; }
-    .boot.out { opacity: 0; visibility: hidden; transform: scale(1.03); }
-    .boot-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-    .boot-stage { position: relative; width: 150px; height: 150px; display: grid; place-items: center; }
-    .boot-ring { position: absolute; inset: 0; transform: rotate(-90deg); }
-    .boot-ring circle { fill: none; stroke-width: 5; stroke-linecap: round; }
-    .boot-ring .bg { stroke: #e6e1f6; }
-    .boot-ring .fg { stroke: url(#boot-rg); stroke-dasharray: 440; stroke-dashoffset: 405; transition: stroke-dashoffset .6s cubic-bezier(.2, .8, .2, 1); }
-    .boot .logo-svg { width: 84px; height: 84px; border-radius: 24px; box-shadow: 0 20px 44px -16px rgba(123, 63, 242, .6); animation: bootPop .9s cubic-bezier(.34, 1.56, .64, 1) both; }
-    .boot .logo-svg .lb { transform-origin: 16px 12px; animation: bootBeam 2.2s ease-in-out infinite; }
-    .boot .logo-svg .lf { transform-origin: 16px 25.6px; animation: bootSpot 2.2s ease-in-out infinite; }
-    .boot-glow { position: absolute; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(123, 63, 242, .18), rgba(31, 182, 201, 0) 65%); animation: bootGlow 3s ease-in-out infinite; }
-    .boot h1 { margin: 4px 0 0; font-size: 34px; font-weight: 800; letter-spacing: -.03em; display: flex; }
-    .boot h1 span { display: inline-block; animation: bootLetter .6s cubic-bezier(.34, 1.56, .64, 1) both; }
-    .boot h1 span:nth-child(2) { animation-delay: .08s; } .boot h1 span:nth-child(3) { animation-delay: .16s; } .boot h1 span:nth-child(4) { animation-delay: .24s; }
-    .boot p { margin: -6px 0 0; color: #5d6470; font-size: 14.5px; animation: bootUp .6s .35s both; }
-    .boot-bar { display: none; } .boot-bar i { display: block; }
-    .boot small { color: #7c8594; font-size: 13px; min-height: 18px; animation: bootUp .6s .45s both; }
-    .boot small.err { color: #d93036; }
-    @keyframes bootPop { from { transform: scale(.5) rotate(-12deg); opacity: 0; } }
-    @keyframes bootUp { from { transform: translateY(10px); opacity: 0; } }
-    @keyframes bootLetter { from { transform: translateY(18px) scale(.8); opacity: 0; } }
-    @keyframes bootBeam { 0%, 100% { transform: rotate(-9deg); opacity: .22; } 50% { transform: rotate(9deg); opacity: .5; } }
-    @keyframes bootSpot { 0%, 100% { transform: translateX(-2.4px) scaleX(.8); } 50% { transform: translateX(2.4px) scaleX(1.05); } }
-    @keyframes bootGlow { 0%, 100% { transform: scale(.9); opacity: .7; } 50% { transform: scale(1.1); opacity: 1; } }
+    .boot { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; overflow: hidden; color: #16151c;
+      background: radial-gradient(900px 520px at 50% -10%, #ece6ff 0%, rgba(236, 230, 255, 0) 65%),
+                  radial-gradient(700px 420px at 50% 115%, #f5ead8 0%, rgba(245, 234, 216, 0) 60%), #f6f5f2;
+      font-family: 'Figtree', 'Segoe UI', system-ui, sans-serif; transition: opacity .32s ease, visibility .32s; }
+    .boot.out { opacity: 0; visibility: hidden; }
+    .boot-in { display: grid; justify-items: center; gap: 10px; transform: translateY(-4vh); }
+    .boot-stage { position: relative; width: 220px; height: 150px; }
+    .boot-fix { position: absolute; left: 50%; top: 4px; width: 34px; height: 16px; margin-left: -17px; border-radius: 6px 6px 9px 9px; background: #1d1a33; box-shadow: 0 6px 14px -6px rgba(29, 26, 51, .6); }
+    .boot-fix::after { content: ""; position: absolute; left: 50%; bottom: -3px; width: 12px; height: 6px; margin-left: -6px; border-radius: 0 0 6px 6px; background: #fff; box-shadow: 0 0 12px 3px rgba(150, 120, 255, .9); }
+    .boot-beam { position: absolute; left: 50%; top: 18px; width: 150px; height: 128px; margin-left: -75px; transform-origin: 50% 0;
+      background: linear-gradient(180deg, rgba(118, 86, 255, .55), rgba(118, 86, 255, 0) 92%); clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+      animation: bootSweep 2.4s cubic-bezier(.45, 0, .55, 1) infinite alternate; }
+    .boot-pool { position: absolute; left: 50%; bottom: 0; width: 120px; height: 18px; margin-left: -60px; border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(118, 86, 255, .45), rgba(118, 86, 255, 0)); animation: bootPool 2.4s cubic-bezier(.45, 0, .55, 1) infinite alternate; }
+    .boot h1 { margin: 8px 0 0; font: 600 54px/1 'Fraunces', 'Iowan Old Style', Georgia, serif; letter-spacing: -.02em;
+      background: linear-gradient(100deg, #16151c 0%, #16151c 40%, #7a5cff 50%, #16151c 60%, #16151c 100%) 0 0 / 250% 100%;
+      -webkit-background-clip: text; background-clip: text; color: transparent; animation: bootShine 2.6s ease-in-out infinite; }
+    .boot p { margin: 0; color: #6b6a7c; font-size: 14.5px; }
+    .boot-line { width: 180px; height: 3px; margin-top: 14px; border-radius: 3px; background: #e7e3da; overflow: hidden; }
+    .boot-line i { display: block; height: 100%; width: 8%; border-radius: 3px; background: linear-gradient(90deg, #6c4ff2, #4729d4); transition: width .35s cubic-bezier(.2, .8, .2, 1); }
+    .boot small { min-height: 18px; color: #8f8d9c; font-size: 12.5px; }
+    .boot small.err { color: #c4262e; }
+    @keyframes bootSweep { from { transform: rotate(-24deg); } to { transform: rotate(24deg); } }
+    @keyframes bootPool { from { transform: translateX(56px) scaleX(.85); } to { transform: translateX(-56px) scaleX(.85); } }
+    @keyframes bootShine { 0%, 15% { background-position: 100% 0; } 85%, 100% { background-position: 0 0; } }
     @media (prefers-reduced-motion: reduce) { .boot * { animation: none !important; } }
   </style>
   <div class="boot-in">
-    <div class="boot-stage"><div class="boot-glow"></div>
-      <svg class="boot-ring" viewBox="0 0 150 150"><defs><linearGradient id="boot-rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7b3ff2"/><stop offset="1" stop-color="#1fb6c9"/></linearGradient></defs>
-        <circle class="bg" cx="75" cy="75" r="70"/><circle class="fg" id="boot-ring" cx="75" cy="75" r="70"/></svg>
-      <svg class="logo-svg" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg-boot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7b3ff2"/><stop offset="1" stop-color="#1fb6c9"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg-boot)"/><path class="lb" d="M13.2 12.6h5.6L25 25.6H7Z" fill="#fff" opacity=".34"/><ellipse class="lf" cx="16" cy="25.6" rx="9" ry="2.3" fill="#fff" opacity=".6"/><circle cx="16" cy="10" r="4.8" fill="#fff"/><circle cx="16" cy="10" r="1.9" fill="#7b3ff2"/></svg></div>
-    <h1><span>L</span><span>u</span><span>m</span><span>o</span></h1>
-    <p id="boot-tag">Światło, które słucha Twojej dłoni</p>
-    <div class="boot-bar"><i id="boot-bar"></i></div>
+    <div class="boot-stage" aria-hidden="true"><div class="boot-beam"></div><div class="boot-pool"></div><div class="boot-fix"></div></div>
+    <h1>Lumo</h1>
+    <p id="boot-tag">Światło, które słucha muzyki</p>
+    <div class="boot-line"><i id="boot-bar"></i></div>
     <small id="boot-msg">Uruchamianie…</small>
   </div>
   <script>
@@ -65,19 +61,18 @@
         if (localStorage.getItem('ph_hints') === '0') de.classList.add('nohints');
       } catch (e) { /* private mode */ }
       var it = (localStorage.getItem('ph_lang') === 'it');
-      var T = it ? { tag: 'La luce che ascolta la tua mano', start: 'Avvio…', ws: 'Collegamento al programma…', state: 'Carico luci e impostazioni…', ready: 'Pronto', err: 'Il programma non risponde. È avviato (run.bat)?' }
-                 : { tag: 'Światło, które słucha Twojej dłoni', start: 'Uruchamianie…', ws: 'Łączenie z programem…', state: 'Wczytywanie lamp i ustawień…', ready: 'Gotowe', err: 'Program nie odpowiada. Czy jest uruchomiony (run.bat)?' };
+      var T = it ? { tag: 'La luce che ascolta la musica', start: 'Avvio…', ws: 'Collegamento al programma…', state: 'Carico luci e impostazioni…', ready: 'Pronto', err: 'Il programma non risponde. È avviato (run.bat)?' }
+                 : { tag: 'Światło, które słucha muzyki', start: 'Uruchamianie…', ws: 'Łączenie z programem…', state: 'Wczytywanie lamp i ustawień…', ready: 'Gotowe', err: 'Program nie odpowiada. Czy jest uruchomiony (run.bat)?' };
       var el = document.getElementById('boot'), bar = document.getElementById('boot-bar'), msg = document.getElementById('boot-msg');
       document.getElementById('boot-tag').textContent = T.tag; msg.textContent = T.start;
-      var t0 = performance.now(), done = false, rg = document.getElementById('boot-ring');
-      var ring = function (p) { if (rg) rg.style.strokeDashoffset = String(440 - 440 * Math.max(8, Math.min(100, p)) / 100); };
+      var t0 = performance.now(), done = false;
       window.LumoBoot = {
-        step: function (k, pct) { if (done) return; msg.textContent = T[k] || k; msg.className = ''; bar.style.width = pct + '%'; ring(pct); },
+        step: function (k, pct) { if (done) return; msg.textContent = T[k] || k; msg.className = ''; bar.style.width = Math.max(8, pct) + '%'; },
         fail: function () { if (done) return; msg.textContent = T.err; msg.className = 'err'; },
         done: function () {
-          if (done) return; done = true; bar.style.width = '100%'; ring(100); msg.textContent = T.ready; msg.className = '';
-          var wait = Math.max(0, 900 - (performance.now() - t0));        // long enough to be seen, never in the way
-          setTimeout(function () { el.classList.add('out'); setTimeout(function () { el.remove(); }, 600); }, wait + 200);
+          if (done) return; done = true; bar.style.width = '100%'; msg.textContent = T.ready; msg.className = '';
+          var wait = Math.max(0, 260 - (performance.now() - t0));      // never in the way: gone as soon as the lamps are in
+          setTimeout(function () { el.classList.add('out'); setTimeout(function () { el.remove(); }, 340); }, wait);
         },
       };
       setTimeout(function () { if (!done) window.LumoBoot.fail(); }, 9000);
@@ -87,7 +82,7 @@
 
 <header class="top3">
   <div class="top-l">
-    <div class="brand3"><svg class="logo-svg" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg-top" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7b3ff2"/><stop offset="1" stop-color="#1fb6c9"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg-top)"/><path class="lb" d="M13.2 12.6h5.6L25 25.6H7Z" fill="#fff" opacity=".34"/><ellipse class="lf" cx="16" cy="25.6" rx="9" ry="2.3" fill="#fff" opacity=".6"/><circle cx="16" cy="10" r="4.8" fill="#fff"/><circle cx="16" cy="10" r="1.9" fill="#7b3ff2"/></svg><b>Lumo</b></div>
+    <div class="brand3"><svg class="logo-svg" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg-top" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c4ff2"/><stop offset="1" stop-color="#2e1f8f"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg-top)"/><path class="lb" d="M13.2 12.6h5.6L25 25.6H7Z" fill="#fff" opacity=".34"/><ellipse class="lf" cx="16" cy="25.6" rx="9" ry="2.3" fill="#fff" opacity=".6"/><circle cx="16" cy="10" r="4.8" fill="#fff"/><circle cx="16" cy="10" r="1.9" fill="#4729d4"/></svg><b>Lumo</b></div>
     <div class="quick">
       <button class="key" id="q-spot"><span class="led"></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 5h-4zM10 8l-5 12M14 8l5 12M5 20h14"/></svg><span class="kt"><b data-i18n="q.spot">Reflektor</b><small data-i18n="q.spotS">na osobę</small></span></button>
       <button class="key" id="q-auto"><span class="led"></span><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16c2-6 4-9 6-9s3 10 5 10 3-5 5-7M4 20h16"/></svg><span class="kt"><b data-i18n="q.auto">Autopilot</b><small id="q-mood" data-i18n="q.autoS">z muzyką</small></span></button>
@@ -95,7 +90,8 @@
   </div>
   <nav class="tabs3" id="tabs" role="tablist">
     <span class="lens" id="tab-ink"></span>
-    <button role="tab" data-tab="scene" class="on"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9L12 3ZM3 7.5 12 12l9-4.5M12 12v9"/></svg><span data-i18n="tab.scene">Scena</span></button>
+    <button role="tab" data-tab="show" class="on"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M5.6 5.6l2.1 2.1M18.4 5.6l-2.1 2.1M7 14a5 5 0 1 1 10 0c0 2-1 3-2 4h-6c-1-1-2-2-2-4ZM9.5 21h5"/></svg><span data-i18n="tab.show">Pokaz</span></button>
+    <button role="tab" data-tab="scene"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9L12 3ZM3 7.5 12 12l9-4.5M12 12v9"/></svg><span data-i18n="tab.scene">Scena</span></button>
     <button role="tab" data-tab="hand"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-6.5a1.5 1.5 0 0 1 3 0V11m0-5a1.5 1.5 0 0 1 3 0v7.5c0 4.1-2.9 7.5-6.6 7.5-2.3 0-3.9-1-5.3-3L3.9 14a1.6 1.6 0 0 1 2.4-2L8 13.6"/></svg><span data-i18n="tab.hand">Dłoń</span></button>
     <button role="tab" data-tab="mixer"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18M12 3v18M18 3v18M3.5 13h5v3h-5zM9.5 7h5v3h-5zM15.5 15h5v3h-5z"/></svg><span data-i18n="tab.mixer">Mikser</span></button>
     <button role="tab" data-tab="stagecam"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h9A1.5 1.5 0 0 1 15 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 16.5zM15 10.5l6-3.5v10l-6-3.5"/></svg><span data-i18n="tab.stagecam">Kamera sceny</span></button>
@@ -119,8 +115,11 @@
 </header>
 
 <main class="view">
+  <!-- ======================================================== POKAZ (live.js) -->
+  <section class="tab-page on" data-page="show"><div class="show" id="show"></div></section>
+
   <!-- ======================================================== SCENA 3D -->
-  <section class="tab-page on" data-page="scene">
+  <section class="tab-page" data-page="scene">
     <div class="stage3d" id="stage3d">
       <div class="labels3d" id="labels3d"></div>
 
@@ -300,7 +299,7 @@
           <div class="rowp"><select id="mu-dev" style="flex:1"></select><button class="btn primary" id="mu-start">Start</button></div>
           <canvas id="mu-spec"></canvas>
           <div class="lvl"><i id="mu-lvl"></i></div>
-          <label class="rowp lbl"><span data-i18n="mu.sens">Czułość bitu</span>
+          <label class="rowp lbl" hidden><span data-i18n="mu.sens">Czułość bitu</span>
             <input type="range" id="mu-sens" min="1.15" max="2.2" step="0.05" value="1.45" style="flex:1"></label>
           <div class="grp"><span class="lbl" data-i18n="mu.react">Reakcja świateł na bit</span>
             <div class="react" id="mu-react">
@@ -576,28 +575,31 @@
 <script type="importmap">
   { "imports": { "three": "/static/vendor/three.module.min.js", "three/addons/": "/static/vendor/addons/" } }
 </script>
-<script src="/static/i18n_it.js?v=4.8"></script>
-<script src="/static/icons.js?v=4.8"></script>
-<script src="/static/app.js?v=4.8"></script>
-<script src="/static/music.js?v=4.8"></script>
-<script src="/static/stagecam.js?v=4.8"></script>
-<script src="/static/setup.js?v=4.8"></script>
-<script src="/static/wizard.js?v=4.8"></script>
-<script src="/static/doctor.js?v=4.8"></script>
-<script src="/static/holohand.js?v=4.8"></script>
-<script src="/static/library.js?v=4.8"></script>
-<script src="/static/simple.js?v=4.8"></script>
-<script src="/static/handtools.js?v=4.8"></script>
-<script src="/static/connmap.js?v=4.8"></script>
-<script src="/static/gestures2.js?v=4.8"></script>
-<script src="/static/keys.js?v=4.8"></script>
-<script src="/static/tracklist.js?v=4.8"></script>
-<script src="/static/chedit.js?v=4.8"></script>
-<script src="/static/desk.js?v=4.8"></script>
-<script src="/static/folders.js?v=4.8"></script>
-<script src="/static/mufolders.js?v=4.8"></script>
-<script src="/static/tour.js?v=4.8"></script>
-<script src="/static/fx.js?v=4.8"></script>
-<script type="module" src="/static/stage3d.js?v=4.8"></script>
+<script src="/static/i18n_it.js?v=5.0"></script>
+<script src="/static/icons.js?v=5.0"></script>
+<script src="/static/app.js?v=5.0"></script>
+<script src="/static/music.js?v=5.0"></script>
+<script src="/static/beatcore.js?v=5.0"></script>
+<script src="/static/live.js?v=5.0"></script>
+<script src="/static/stagecam.js?v=5.0"></script>
+<script src="/static/setup.js?v=5.0"></script>
+<script src="/static/wizard.js?v=5.0"></script>
+<script src="/static/doctor.js?v=5.0"></script>
+<script src="/static/holohand.js?v=5.0"></script>
+<script src="/static/library.js?v=5.0"></script>
+<script src="/static/simple.js?v=5.0"></script>
+<script src="/static/handtools.js?v=5.0"></script>
+<script src="/static/connmap.js?v=5.0"></script>
+<script src="/static/gestures2.js?v=5.0"></script>
+<script src="/static/keys.js?v=5.0"></script>
+<script src="/static/tracklist.js?v=5.0"></script>
+<script src="/static/chedit.js?v=5.0"></script>
+<script src="/static/desk.js?v=5.0"></script>
+<script src="/static/folders.js?v=5.0"></script>
+<script src="/static/mufolders.js?v=5.0"></script>
+<script src="/static/tour.js?v=5.0"></script>
+<script src="/static/fx.js?v=5.0"></script>
+<script src="/static/simpleui.js?v=5.0"></script>
+<script type="module" src="/static/stage3d.js?v=5.0"></script>
 </body>
 </html>

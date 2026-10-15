@@ -1,5 +1,76 @@
 # Lumo — światło sterowane dłonią
 
+## Uruchomienie na innym komputerze (Windows 10 / 11)
+
+1. Zainstaluj **Git** (git-scm.com) i otwórz wiersz poleceń w folderze, w którym ma być Lumo.
+2. Pobierz program:
+   `git clone -b lumo-5 https://github.com/strxpro/swaitla.git Lumo`
+3. Wejdź do folderu `Lumo` i kliknij dwukrotnie **`run.bat`**. Za pierwszym razem sam:
+   - znajdzie Pythona 3.10+, a jeśli go nie ma, zaproponuje instalację;
+   - zainstaluje pakiety (kilka minut, potrzebny internet);
+   - zrobi skróty na pulpicie;
+   - otworzy Lumo w przeglądarce.
+
+Aktualizacja: w folderze `Lumo` wpisz `git pull` i znów uruchom `run.bat`. Jeśli działa jeszcze stara
+wersja, `run.bat` sam ją zamknie i uruchomi nową. Twoje lampy są w `config.json`. Klucz AudD
+(opcjonalny) zapisuje się tylko lokalnie w `audd_key.txt` i nigdy nie trafia do gita.
+
+## Wersja 5 — zakładka „Pokaz”: AI słucha muzyki i prowadzi światła
+
+**Jeden przycisk.** Pokaz → wybierz źródło dźwięku (wyjście miksera, wejście liniowe, mikrofon) → **Start pokazu**.
+Lumo łapie rytm, rozpoznaje, co gra, i sam układa światła. Zakładka otwiera się jako pierwsza.
+
+- **Idealnie w rytm.** Nowy detektor bitu działa w AudioWorklet, więc nie zwalnia, gdy okno jest w tle.
+  Tempo liczy z autokorelacji uderzeń, fazę z „grzebienia” ostatnich 8 bitów i łagodnej pętli PLL.
+  Przewiduje **następny** bit, zamiast reagować z opóźnieniem. Serwer ma własny zegar bitów
+  (`rhythm.py`): efekty odpalają się na przewidzianym bicie, wcześniej o opóźnienie lamp.
+  Wszystkie efekty z `beats` zaczynają cykl na tej samej kresce taktowej. Wykrywa też „raz” w takcie.
+- **Synchronizacja** (Pokaz → Synchronizacja): światła błyskają na każdy bit. Suwakiem ±ms ustawiasz,
+  żeby błysk i stopa perkusji były w tym samym momencie. Jedna wartość obowiązuje dla grania na żywo
+  i dla osi czasu.
+- **Części utworu**: intro, zwrotka, refren, narastanie, **drop** (wykrywany już na pierwszym kicku),
+  wyciszenie, cisza. Widać je na mapie utworu pod tytułem.
+- **AI (offline, za darmo)**: model Google **YAMNet** (`models/yamnet.tflite`, MediaPipe) co sekundę
+  rozpoznaje gatunek (elektronika, rock, pop, hip-hop/R&B, filmowa/klasyczna, jazz, folk, latino,
+  świąteczna, ambient), nastrój, wokal, instrumenty i oklaski. Zauważa też, że zaczął się nowy utwór.
+- **Tytuł utworu (opcja, internet)**: Pokaz → Rozpoznawanie utworu → klucz **AudD**
+  (darmowy na dashboard.audd.io). Przy nowym utworze Lumo wysyła 8 s dźwięku do api.audd.io i pokazuje
+  wykonawcę, tytuł i gatunek z Apple Music. Klucz zostaje na tym komputerze i nie trafia do kopii ustawień.
+- **Reżyser AI** (`director.py`): 7 stylów (**Auto AI**, Kino, Koncert, Klub, Chill, Elegancja, Rave),
+  23 „wyglądy” (np. Ballyhoo, Krzyżowy ogień, Premiera, Zorza, Burza, Złota godzina, Pościg w bit, Stutter).
+  Paletę kolorów dobiera do gatunku i nastroju. Co frazę zmienia wygląd, a nowy wygląd **morfuje** ze
+  starego. W **narastaniu** wiązki wspinają się, kolory przechodzą w biel, a błyski przyspieszają.
+  Na **dropie** daje blinder i (w klubie / koncercie / rave) strobo. W **wyciszeniu** przechodzi
+  w filmowy wygląd. Suwaki: płynność przejść (cięcia ↔ długie morfingi) i energia. Do tego
+  „Następny wygląd”, „Zatrzymaj wygląd” oraz szybkie akcje: Blinder, Strobo (przytrzymaj),
+  Blackout, Dym, Reflektor.
+- **Nowe efekty** (też w Muzyka → Efekty i na osi czasu):
+  - ruch: ballyhoo, krzyżowy ogień, reflektory premiery, na publiczność, lustro, wznoszenie,
+    morfing kształtów;
+  - kolor: morfing kolorów (przez OKLab, bez szarości po drodze), dwie strony, świt, zorza, noir,
+    świece, policja, do bieli;
+  - jasność: blinder, pościg w bit, schody, stutter, riser, błyskawice, gwiazdy, stałe światło.
+
+  Każdy efekt może płynnie przejść z poprzedniego (`morph` / `morph_beats`).
+- **Kalibracja świateł w minutę na lampę**: Pokaz → Kalibracja świateł albo Ustawienia → Start →
+  „Szybka kalibracja wszystkich świateł”. Dla każdej lampy kreator:
+  1. Prosi o potwierdzenie, że to ta lampa (mruga).
+  2. Prosi o naprowadzenie światła na **środek parkietu** (pole + strzałki). Wokół tego punktu
+     toczy się pokaz.
+  3. Sprawdza kierunki **w prawo** i **w górę** („Nie, w drugą stronę” poprawia sam).
+  4. Sprawdza kolory.
+- **Wygląd „Lux”** (`static/lux.css`): ciepła, spokojna baza, jeden głęboki fiolet, eleganckie tytuły
+  (Fraunces). W górnym pasku jest mniej przycisków, stan połączeń to same kropki, a panel suwaków
+  znika tam, gdzie przeszkadzał (Pokaz, Muzyka).
+
+Pliki: `rhythm.py` (zegar bitów), `director.py` (reżyser), `musicai.py` (AI i tytuł),
+`static/beatcore.js` + `static/beatworklet.js` (detektor bitu), `static/live.js` (zakładka Pokaz),
+`static/lux.css`.
+
+Uwaga: tor audio i AI przetestowano na syntetycznych utworach (100, 126, 128 i 174 BPM). Bardzo
+szybkie DnB (174) bywa prowadzone w połowie tempa (87). Przed imprezą zrób próbę z prawdziwym
+wejściem z miksera i lampami, a potem ustaw Synchronizację.
+
 ## Pokaz na żywo i wiele lamp
 
 - W **Muzyka → Autopilot** wybierz wejście miksera i kliknij **Start pokazu na żywo**.

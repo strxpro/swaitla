@@ -214,6 +214,7 @@ class Fixture:
     strobe_min: int = 1                   # shutter value for slowest strobe
     strobe_max: int = 255                 # shutter value for fastest strobe
     aim_points: dict | None = None        # person calibration {"main"|"stage": [[x, y, pan, tilt], ...]}
+    show_home: list[float] | None = None  # [pan16, tilt16] beam on the middle of the dance floor (shows move around it)
     wheel: list | None = None             # colour wheel slots [[dmx, [r, g, b], name], ...]
     gobos: list | None = None             # gobo wheel presets [[dmx, name], ...]
     target: dict[str, float] = field(default_factory=default_values)
@@ -364,7 +365,7 @@ class Fixture:
             "invert_pan": self.invert_pan, "invert_tilt": self.invert_tilt, "beam_deg": self.beam_deg,
             "flip_x": self.flip_x, "flip_y": self.flip_y, "enabled": self.enabled,
             "shutter_open": self.shutter_open, "strobe_min": self.strobe_min, "strobe_max": self.strobe_max,
-            "aim_pan": self.aim_pan, "aim_tilt": self.aim_tilt,
+            "aim_pan": self.aim_pan, "aim_tilt": self.aim_tilt, "show_home": self.show_home,
             "wheel": self.wheel, "gobos": self.gobos,
             "aim_points": {c: len(v) for c, v in (self.aim_points or {}).items()},
             "aim_err": {c: round(fit["err"] / 65535 * self.pan_deg, 2)
@@ -387,6 +388,7 @@ class Fixture:
             "aim_pan": self.aim_pan, "aim_tilt": self.aim_tilt,
             "shutter_open": self.shutter_open, "strobe_min": self.strobe_min,
             "strobe_max": self.strobe_max, "wheel": self.wheel, "gobos": self.gobos, "aim_points": self.aim_points,
+            "show_home": self.show_home,
             "caps": self.caps, "defaults": self.defaults,
             "values": {k: int(round(v)) for k, v in self.target.items()},
         }
@@ -397,7 +399,7 @@ class Fixture:
                    "pan_16bit", "tilt_16bit", "has_rgb", "channels",
                    "icon_x", "icon_y", "shutter_open", "strobe_min", "strobe_max",
                    "pos", "mount", "yaw", "pan_deg", "tilt_deg", "invert_pan", "invert_tilt", "flip_x", "flip_y", "enabled",
-                   "beam_deg", "aim_pan", "aim_tilt", "wheel", "gobos", "aim_points", "caps", "defaults"}
+                   "beam_deg", "aim_pan", "aim_tilt", "wheel", "gobos", "aim_points", "caps", "defaults", "show_home"}
         f = cls(**{k: v for k, v in d.items() if k in allowed})
         for k, v in (d.get("values") or {}).items():
             if k in PARAM_MAX:
@@ -1072,7 +1074,7 @@ class DMXEngine:
             for key in ("wheel", "gobos", "caps", "defaults"):
                 if key in kw:
                     setattr(f, key, kw[key] or None)
-            for key in ("aim_pan", "aim_tilt"):
+            for key in ("aim_pan", "aim_tilt", "show_home"):
                 if key in kw:
                     setattr(f, key, [float(v) for v in kw[key][:2]] if kw[key] else None)
             f.pan_deg = max(1.0, f.pan_deg)

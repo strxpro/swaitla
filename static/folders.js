@@ -99,5 +99,5 @@
   // start tab (Ustawienia → Wygląd i start): a fixed tab or the one used last time
   const start = ls('ph_start_tab') || 'last';
   const tab = start === 'last' ? ls('ph_tab') : start;
-  if (tab && tab !== 'scene' && $(`#tabs button[data-tab="${tab}"]`)) setTimeout(() => PH.setTab(tab), 50);
+  if (tab && tab !== PH.S.tab && $(`#tabs button[data-tab="${tab}"]`)) setTimeout(() => PH.setTab(tab), 50);
 })();

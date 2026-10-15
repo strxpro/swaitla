@@ -1,0 +1,8 @@
+# Windows scripts must keep CRLF on every computer (cmd breaks on LF line endings)
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+# models and icons are binary
+*.tflite binary
+*.task   binary
+*.ico    binary

@@ -154,7 +154,9 @@
     if (!force && box.dataset.sig === sig) return;
     box.dataset.sig = sig;
     const tile = (id, icon, title, sub, cls = '') => `<button class="hm-tile ${cls}" data-go="${id}"><span class="hm-ic">${ic(icon)}</span><b>${esc(title)}</b><small>${esc(sub)}</small></button>`;
-    box.innerHTML = `<div class="hm-grid">
+    box.innerHTML = `<button class="hm-hero" data-quickcal><span class="hm-ic">${ic('target')}</span>
+        <span><b>${esc(t('hm.quickcal'))}</b><small>${esc(t('hm.quickcalS'))}</small></span>${ic('chevron')}</button>
+      <div class="hm-grid">
       ${tile('dmx', 'plug', t('hm.dmx'), d.ok && d.config.backend !== 'sim' ? t('hm.dmxOk', { s: d.label || d.status }) : t('hm.dmxBad'), d.ok ? 'ok' : 'bad')}
       ${tile('lamps', 'lamp', t('hm.lamps'), conf ? t('hm.conflict') : n ? t('hm.lampsN', { n }) : t('hm.lamps0'), conf ? 'bad' : '')}
       ${tile('library', 'layers', t('hm.lib'), L.st && L.st.ready ? t('hm.libN', { n: libN }) : t('hm.libBuild'))}
@@ -167,6 +169,7 @@
       <label class="hm-simple"><span><b>${esc(t('sm2.mode'))}</b><small>${esc(t('sm2.modeS'))}</small></span><label class="switch"><input type="checkbox" id="hm-simple" ${PH.simple ? 'checked' : ''}><span></span></label></label></div>`;
     $('#hm-simple', box).onchange = (e) => PH.setSimple(e.target.checked);
     for (const b of $$('[data-go]', box)) b.onclick = () => PH.setupGo(b.dataset.go);
+    $('[data-quickcal]', box).onclick = () => PH.openLightCal && PH.openLightCal();
     for (const b of $$('[data-l]', box)) b.onclick = () => { const x = $(`#lang button[data-lang="${b.dataset.l}"]`); if (x) x.click(); paneHome(S.st, true); };
   }
 

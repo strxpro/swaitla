@@ -21,3 +21,9 @@ cache/
 # Operating system files
 Thumbs.db
 .DS_Store
+
+# Lumo: local-only files
+audd_key.txt
+config.previous.json
+*.tmp
+shows/audio/

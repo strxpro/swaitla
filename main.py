@@ -22,6 +22,7 @@ import argparse
 import asyncio
 import json
 import logging
+import sys
 import time
 import webbrowser
 from contextlib import asynccontextmanager
@@ -45,6 +46,7 @@ from devices import DeviceWatcher
 import qlcimport
 import dmxdoctor
 from mecal import MeCalibrator
+from musicai import MusicAI
 from fixturelib import FixtureLibraryService
 from fixturelib import manual as fx_manual, rdm as fx_rdm
 from collections import deque
@@ -54,6 +56,11 @@ from vision import VideoSource, VisionProcessor, parse_source, scan_cameras
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 CONFIG_PATH = BASE_DIR / "config.json"
+AUDD_KEY_PATH = BASE_DIR / "audd_key.txt"          # song-title key: local only, never in config.json / git
+try:
+    APP_VERSION = (BASE_DIR / "VERSION").read_text(encoding="utf-8").strip()
+except OSError:
+    APP_VERSION = "dev"
 
 log = logging.getLogger("main")
 
@@ -110,8 +117,17 @@ class Rig:
         show = cfg.get("show") or {}
         if show.get("palette"):
             self.effects.palette = [list(map(int, c))[:3] for c in show["palette"]][:8]
-        self.effects.autopilot["mood"] = show.get("mood", "dynamic")
+        self.effects.autopilot["mood"] = show.get("mood", "ai")
         self.effects.autopilot["spot"] = bool(show.get("spot", False))
+        self._load_show(show)
+        self.musicai = MusicAI()                                # "what is playing" (YAMNet + optional title)
+        ai_cfg = dict(cfg.get("ai") or {})
+        try:
+            ai_cfg["audd_token"] = AUDD_KEY_PATH.read_text(encoding="utf-8").strip() or ai_cfg.get("audd_token", "")
+        except OSError:
+            pass
+        self.musicai.configure(**ai_cfg)
+        self.effects.director.ai = self.musicai.state
         vision_mod.HAND_FILTER.update(cfg.get("hand_filter") or {})
         self.bindings = cfg.get("bindings") or []              # keyboard / MIDI buttons → actions
         self.notices: deque = deque(maxlen=40)                  # (seq, toast) sent to every browser
@@ -132,6 +148,15 @@ class Rig:
             self.stagecam.load_config(self.stagecam_cfg)
         except Exception:
             log.exception("stage camera start failed")
+
+    def _load_show(self, show: dict[str, Any]) -> None:
+        """AI director style and light latency (Pokaz) - without starting anything."""
+        d = self.effects.director
+        for k in ("flavor", "morph", "intensity", "ai_colors", "strobe"):
+            if show.get(k) is not None:
+                d.cfg[k] = show[k] if k == "flavor" else (float(show[k]) if k in ("morph", "intensity") else bool(show[k]))
+        if show.get("sync_ms") is not None:
+            self.effects.clock.offset = max(-0.2, min(0.3, float(show["sync_ms"]) / 1000.0))
 
     def recall_look(self, lid: Any, fade: float | None = None) -> bool:
         lk = next((x for x in self.looks if x["id"] == lid), None)
@@ -160,6 +185,7 @@ class Rig:
         return [round(X, 3), round(Z, 3)]
 
     def stop(self) -> None:
+        self.musicai.stop()
         self.devices.stop()
         self.spotlight.stop()
         self.stagecam.stop()
@@ -169,7 +195,20 @@ class Rig:
         self.engine.stop()
 
     def save(self) -> None:
-        save_json(CONFIG_PATH, self.config_data())
+        data = self.config_data()
+        key = self.musicai.cfg.get("audd_token", "")
+        try:
+            if key or AUDD_KEY_PATH.exists():
+                AUDD_KEY_PATH.write_text(key, encoding="utf-8")
+        except OSError:
+            log.warning("could not store the AudD key")
+        if not data.get("fixtures"):
+            # every lamp gone: keep the previous settings, "Przywróć poprzednie" brings them back
+            old = load_json(CONFIG_PATH)
+            if old.get("fixtures"):
+                save_json(CONFIG_PATH.with_name("config.previous.json"), old)
+                log.warning("saving without lamps - the previous settings are in config.previous.json")
+        save_json(CONFIG_PATH, data)
 
     def config_data(self) -> dict[str, Any]:
         data = self.engine.to_config()
@@ -182,7 +221,9 @@ class Rig:
                                "gcfg": self.interaction.gcfg, "relative": self.interaction.relative}
         data["stagecam"] = self.stagecam.to_config()
         data["show"] = {"palette": self.effects.palette, "mood": self.effects.autopilot["mood"],
-                        "spot": self.effects.autopilot["spot"]}
+                        "spot": self.effects.autopilot["spot"], **self.effects.director.cfg,
+                        "sync_ms": round(self.effects.clock.offset * 1000)}
+        data["ai"] = {k: v for k, v in self.musicai.to_config().items() if k != "audd_token"}   # key: audd_key.txt
         data["hand_filter"] = dict(vision_mod.HAND_FILTER)
         data["bindings"] = self.bindings
         data["looks"] = self.looks
@@ -212,6 +253,9 @@ class Rig:
             self.effects.palette = [list(map(int, c))[:3] for c in show["palette"]][:8]
         self.effects.autopilot["mood"] = show.get("mood", self.effects.autopilot["mood"])
         self.effects.autopilot["spot"] = bool(show.get("spot", False))
+        self._load_show(show)
+        if cfg.get("ai"):
+            self.musicai.configure(**{k: v for k, v in cfg["ai"].items() if k != "audd_token" or v})
         vision_mod.HAND_FILTER.update(cfg.get("hand_filter") or {})
         self.bindings = list(cfg.get("bindings") or [])
         self.smoke.load_config(cfg.get("smoke"))
@@ -237,7 +281,8 @@ class Rig:
                  bindings=self.bindings, devices=self.devices.known, people_on=self.vision.people_on,
                  dmx_rivals=list(dict.fromkeys(self.devices.rivals)),
                  smoke=self.smoke.state(), looks=[{k: v for k, v in x.items() if k != "values"} for x in self.looks],
-                 frame_len=self.engine.frame_len(), refresh_hz=dmx_controller.DMX_REFRESH_HZ)
+                 frame_len=self.engine.frame_len(), refresh_hz=dmx_controller.DMX_REFRESH_HZ,
+                 music_ai=self.musicai.state())
         return s
 
 
@@ -290,6 +335,12 @@ async def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html", headers={"Cache-Control": "no-store"})
 
 
+@app.get("/api/version")
+async def api_version() -> dict[str, Any]:
+    """run.bat asks this: an older Lumo still running after an update is restarted."""
+    return {"version": APP_VERSION}
+
+
 @app.get("/api/state")
 async def api_state() -> dict[str, Any]:
     return rig.state()
@@ -299,7 +350,9 @@ async def api_state() -> dict[str, Any]:
 async def api_config() -> JSONResponse:
     """The whole settings file as a download (Ustawienia → Kopia zapasowa)."""
     name = f"lumo-ustawienia-{time.strftime('%Y-%m-%d_%H%M')}.json"
-    return JSONResponse(rig.config_data(), headers={"Content-Disposition": f'attachment; filename="{name}"'})
+    data = rig.config_data()
+    data["ai"] = {k: v for k, v in data.get("ai", {}).items() if k != "audd_token"}   # the key stays on this computer
+    return JSONResponse(data, headers={"Content-Disposition": f'attachment; filename="{name}"'})
 
 
 SHOWS_DIR = BASE_DIR / "shows"
@@ -439,7 +492,8 @@ AUTOSAVE = {"add_fixture", "duplicate_fixture", "free_address", "update_fixture"
             "source", "mirror", "mode", "scope", "follow_all", "select", "smoothing",
             "stagecam_source", "stagecam_mirror", "stagecam_quad", "stagecam_follow",
             "gesture_save", "autopilot", "palette", "aim_box", "speed_profile", "selection",
-            "aim_point", "aim_point_clear", "bindings", "smoke", "look_save", "look_update", "look_delete"}
+            "aim_point", "aim_point_clear", "bindings", "smoke", "look_save", "look_update", "look_delete",
+            "director", "show_start", "sync", "ai_cfg", "show_home"}
 _save_task: asyncio.Task | None = None
 
 
@@ -756,6 +810,43 @@ async def handle_message(m: dict[str, Any]) -> dict[str, Any] | None:
         if m.get("source") != "live":
             r.effects.audio_seen = False
         r.effects.beat(float(m.get("strength", 1)), bool(m.get("drop")), m.get("bpm"))
+    elif t == "grid":          # {bpm, next_in (s), beat_in_bar?, confidence?, source?} beat grid from the tracker
+        r.effects.grid(float(m["bpm"]), float(m["next_in"]), m.get("beat_in_bar"),
+                       float(m.get("confidence", 1.0)), m.get("source", "live"))
+    elif t == "grid_off":      # the tracker lost the music / the song stopped
+        r.effects.clock.release()
+    elif t == "onset":         # {strength} a kick right now (how hard the next grid beat hits)
+        r.effects.onset(float(m.get("strength", 1.0)))
+    elif t == "section":       # {name, energy} intro | verse | chorus | build | drop | breakdown | outro | quiet
+        r.effects.set_section(str(m.get("name", "")), float(m.get("energy", 0.0)))
+    elif t == "show_start":    # {flavor?} the one big button: AI director on
+        if m.get("flavor"):
+            fl = m["flavor"]
+            r.effects.director.cfg["flavor"] = fl if fl in ("auto", "cinema", "concert", "club", "chill", "elegant", "rave") else "auto"
+        r.effects.set_autopilot(on=True, mood="ai")
+    elif t == "show_stop":
+        r.effects.set_autopilot(on=False)
+    elif t == "director":      # {flavor?, morph?, intensity?, ai_colors?, strobe?}
+        r.effects.director.configure(**{k: m.get(k) for k in ("flavor", "morph", "intensity", "ai_colors", "strobe")})
+    elif t == "look_next":
+        r.effects.director.next_look()
+    elif t == "freeze":        # {value} keep the current look
+        r.effects.director.freeze(bool(m.get("value")))
+    elif t == "sync":          # {ms} light latency: plus = the light comes earlier
+        r.effects.clock.offset = max(-0.2, min(0.3, float(m.get("ms", 40)) / 1000.0))
+    elif t == "ai_cfg":        # {listen?, recognize?, audd_token?}
+        r.musicai.configure(**{k: m.get(k) for k in ("listen", "recognize", "audd_token")})
+    elif t == "show_home":     # {id | "all", pan?, tilt?, clear?} the beam on the middle of the dance floor = centre of the show
+        ids = list(eng.fixtures) if m.get("id") == "all" else [int(m["id"])]
+        with eng.lock:
+            for i in ids:
+                f = eng.fixtures.get(i)
+                if f is not None and f.type not in ("smoke", "laser"):
+                    pan = float(m["pan"]) if m.get("pan") is not None else float(f.target["pan"])
+                    tilt = float(m["tilt"]) if m.get("tilt") is not None else float(f.target["tilt"])
+                    f.show_home = None if m.get("clear") else [round(max(0.0, min(65535.0, pan))), round(max(0.0, min(65535.0, tilt)))]
+    elif t == "blinder":       # one white burst on every light
+        r.effects.start("blinder", {"decay": float(m.get("decay", 0.8))}, "all", 2.0, "pad-blinder")
     elif t == "reactions":     # {flash, color_step, move_step, strobe_drop}
         r.effects.reactions.update({k: bool(v) for k, v in m.get("value", {}).items()
                                     if k in r.effects.reactions})
@@ -891,7 +982,7 @@ async def handle_message(m: dict[str, Any]) -> dict[str, Any] | None:
         if src is None:
             return None
         spec = src.to_config()
-        for k in ("id", "address", "aim_points", "icon_x", "icon_y"):
+        for k in ("id", "address", "aim_points", "icon_x", "icon_y", "show_home"):
             spec.pop(k, None)
         spec["name"] = (src.name + " 2")[:24]
         spec["pos"] = [round(src.pos[0] + 1.0, 2), src.pos[1], src.pos[2]]
@@ -998,7 +1089,13 @@ async def ws_endpoint(ws: WebSocket) -> None:
     rig.vision.want_jpeg = True
     try:
         while True:
-            raw = await ws.receive_text()
+            frame = await ws.receive()
+            if frame["type"] == "websocket.disconnect":
+                raise WebSocketDisconnect(frame.get("code", 1000))
+            if frame.get("bytes") is not None:           # live audio for the music AI
+                rig.musicai.feed(frame["bytes"])
+                continue
+            raw = frame.get("text") or ""
             try:
                 msg = json.loads(raw)
                 if msg.get("type") == "video":      # this browser shows / hides the camera image
@@ -1038,7 +1135,18 @@ def main() -> None:
     ap.add_argument("--artnet-ip", help="Art-Net node IP or broadcast address")
     ap.add_argument("--universe", type=int, help="Art-Net universe (port-address)")
     ap.add_argument("--open", action="store_true", help="open the browser automatically")
+    ap.add_argument("--config", help="settings file (default: config.json next to main.py)")
     args = ap.parse_args()
+    if args.config:
+        global CONFIG_PATH
+        CONFIG_PATH = Path(args.config).resolve()
+
+    # a cp1250 console (or a pipe) cannot print "→" etc. – never crash on a log line
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")
+        except (AttributeError, ValueError):
+            pass
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(name)s: %(message)s")
 
@@ -1060,7 +1168,7 @@ def main() -> None:
         dmx_controller.ARTNET_UNIVERSE = args.universe
 
     url = f"http://{'127.0.0.1' if args.host in ('0.0.0.0', '::') else args.host}:{args.port}"
-    print(f"\n  Lumo  →  {url}\n")
+    print(f"\n  Lumo {APP_VERSION}  →  {url}\n")
     if args.open:
         webbrowser.open(url)
     uvicorn.run(app, host=args.host, port=args.port, log_level="warning")

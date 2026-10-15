@@ -24,7 +24,7 @@ const FLOOR_CORNERS_IT = ['Avanti, sinistra', 'Avanti, destra', 'Dietro, destra'
 /* ---------------------------------------------------------------- i18n (PL / IT) */
 const I18N = {
   pl: {
-    'tab.scene': 'Scena 3D', 'tab.hand': 'Dłoń', 'tab.mixer': 'Mikser', 'tab.setup': 'Ustawienia', 'tab.music': 'Muzyka',
+    'tab.scene': 'Scena 3D', 'tab.hand': 'Dłoń', 'tab.mixer': 'Mikser', 'tab.setup': 'Ustawienia', 'tab.music': 'Muzyka', 'tab.show': 'Pokaz',
     'mu.live': 'Muzyka na żywo z miksera', 'mu.sens': 'Czułość bitu', 'mu.react': 'Reakcja świateł na bit',
     'mu.r.flash': 'Flash na bit', 'mu.r.color': 'Kolor na bit', 'mu.r.move': 'Ruch na bit', 'mu.r.drop': 'Strobe na dropie',
     'mu.hint': 'Podłącz wyjście miksera (REC / BOOTH / AUX) do wejścia liniowego komputera albo karty dźwiękowej, wybierz je na liście i kliknij Start.',
@@ -306,7 +306,7 @@ const S = {
   ws: null, connected: false, st: null,
   bitmap: null, decoding: false, nextBlob: null,
   out: new Map(), roi: null, manualDrag: false, floorCal: null,
-  tab: 'scene', showCam: false,
+  tab: 'show', showCam: false,
   hands: new Map(),            // slot → {lm, alpha, data}
   sig: { chips: null, bank: null, mon: null, cards: {} },
   hz: 0, hzCount: 0, ports: null,
@@ -408,14 +408,29 @@ function rgb2hsv(r, g, b) {
   return [h, mx ? d / mx : 0, mx];
 }
 function toast(text, level = 'ok') {
+  const box = $('#toasts'), msg = tr(text);
+  const hide = (el) => { el.classList.add('out'); setTimeout(() => el.remove(), 300); };
+  // the same message again (e.g. the cable check every few seconds): bump the one on screen, never stack copies
+  const same = [...box.children].find((el) => el.dataset.msg === msg && !el.classList.contains('out'));
+  if (same) {
+    clearTimeout(same._t);
+    same._n = (same._n || 1) + 1;
+    let n = same.querySelector('b.n');
+    if (!n) { n = document.createElement('b'); n.className = 'n'; same.querySelector('span').after(n); }
+    n.textContent = `×${same._n}`;
+    same.classList.remove('bump'); void same.offsetWidth; same.classList.add('bump');
+    const tp = same.querySelector('.tp'); tp.style.animation = 'none'; void tp.offsetWidth; tp.style.animation = '';
+    same._t = setTimeout(() => hide(same), 3600);
+    return;
+  }
   const el = document.createElement('div');
   el.className = `toast ${level}`;
+  el.dataset.msg = msg;
   el.innerHTML = `${ic(level === 'err' ? 'close' : level === 'warn' ? 'warn' : 'check')}<span></span><i class="tp"></i>`;
-  el.querySelector('span').textContent = tr(text);
-  const box = $('#toasts');
+  el.querySelector('span').textContent = msg;
   box.appendChild(el);
-  while (box.children.length > 4) box.firstChild.remove();
-  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, 3600);
+  while (box.children.length > 3) box.firstChild.remove();
+  el._t = setTimeout(() => hide(el), 3600);
 }
 function fitCanvas(cv) {
   const r = cv.getBoundingClientRect(), d = dpr();
@@ -436,8 +451,9 @@ function setTab(tab) {
     toast('Test kanałów zakończony — lampa znów słucha gestów i suwaków');
   }
   S.tab = tab;
+  document.body.dataset.tab = tab;
   try { localStorage.setItem('ph_tab', tab); } catch (e) { /* private mode */ }
-  for (const b of $$('#tabs button')) b.classList.toggle('on', b.dataset.tab === tab);
+  for (const b of $$('#tabs button[data-tab]')) b.classList.toggle('on', b.dataset.tab === tab);
   setPageHead();
   for (const p of $$('.tab-page')) p.classList.toggle('on', p.dataset.page === tab);
   moveInk();
@@ -451,7 +467,7 @@ function setTab(tab) {
   if (tab !== 'scene' && window.PH3D) window.PH3D.cancelPlacement();
 }
 function setPageHead() {
-  for (const b of $$('#tabs button')) b.title = t(`pg.${b.dataset.tab}`);
+  for (const b of $$('#tabs button[data-tab]')) b.title = t(`pg.${b.dataset.tab}`);
   moveInk();
 }
 function moveInk() {
@@ -922,14 +938,19 @@ function toggleSel(id) {
   if (cur.has(id)) cur.delete(id); else cur.add(id);
   send({ type: 'selection', ids: [...cur] });
 }
+function paintLamp(el, css, glow) {                 // write only what changed: no restyle when a lamp is steady
+  if (!el || el._css === css) return;
+  el._css = css; el.style.background = css;
+  if (glow !== undefined) el.style.boxShadow = glow;
+}
 function animateLamps(t) {
   for (const f of fixtures()) {
     const { css, glow } = fxColorCss(f, t);
-    const chip = $(`.fx-chip[data-id="${f.id}"] i`); if (chip) { chip.style.background = css; chip.style.boxShadow = glow; }
-    const c = BANK.cols[f.id]; if (c) c.lamp.style.background = css;
+    paintLamp($(`.fx-chip[data-id="${f.id}"] i`), css, glow);
+    const c = BANK.cols[f.id]; if (c) paintLamp(c.lamp, css);
   }
   const f = activeFx(), dot = $('#insp-dot');
-  if (f && dot) { const { css, glow } = fxColorCss(f, t); dot.style.background = css; dot.style.boxShadow = glow; }
+  if (f && dot) { const { css, glow } = fxColorCss(f, t); paintLamp(dot, css, glow); }
 }
 
 /* ---------------------------------------------------------------- DMX monitor */
@@ -2043,7 +2064,7 @@ function huiUpdate(dt) {
     if (HUI.hist.length > 3 && now - HUI.lastSwipe > 1200) {
       const dx = HUI.tx - HUI.hist[0][1], dy = Math.abs(HUI.ty - HUI.hist[0][2]);
       if (Math.abs(dx) > window.innerWidth * 0.45 && dy < window.innerHeight * 0.2) {
-        const tabs = ['scene', 'hand', 'mixer', 'music', 'setup'];
+        const tabs = ['show', 'scene', 'hand', 'mixer', 'music', 'setup'];
         const i = clamp(tabs.indexOf(S.tab) + (dx > 0 ? 1 : -1), 0, tabs.length - 1);
         setTab(tabs[i]); HUI.lastSwipe = now; HUI.hist.length = 0;
         toast(`▸ ${t('tab.' + tabs[i])}`);

@@ -110,12 +110,13 @@
           <input type="number" id="ma-bpm" min="40" max="220" step="0.5" value="${bpm ? Math.round(bpm * 10) / 10 : ''}" placeholder="120">
           <button class="btn primary" id="ma-set">${esc(t('ma.set'))}</button>`)}
         ${srow('ma.tempo', `<input type="range" id="ma-tempo" min="0" max="1" step="0.01" value="${(sc - 0.25) / 2.75}"><output>${sc.toFixed(2)}×</output>`)}
-        ${sens ? srow('ma.sens', `<input type="range" id="ma-sens" min="${sens.min}" max="${sens.max}" step="${sens.step}" value="${sens.value}"><output>${Number(sens.value).toFixed(2)}</output>`) : ''}
+        ${sens && !sens.closest("[hidden]") ? srow('ma.sens', `<input type="range" id="ma-sens" min="${sens.min}" max="${sens.max}" step="${sens.step}" value="${sens.value}"><output>${Number(sens.value).toFixed(2)}</output>`) : ''}
         ${srow('ma.magnet', `<label class="switch"><input type="checkbox" id="ma-magnet" ${TL.magnet ? 'checked' : ''}><span></span></label>`)}
         ${srow('ma.auto', `<button class="btn" id="ma-auto">${ic('sparkle')}<span>${esc(t('ma.autoBtn'))}</span></button>`)}
       </section>`;
     $('#ma-sync', box).onchange = (e) => {
       TL.sync = Number(e.target.value) || 0; try { localStorage.setItem('ph_sync', TL.sync); } catch (err) { /* ignore */ }
+      send({ type: 'sync', ms: TL.sync });
       const other = $('#tl-sync'); if (other) other.value = TL.sync;
       toast(t('ma.saved'));
     };

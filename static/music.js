@@ -38,6 +38,7 @@ PH.addI18n({
     'md.dance': 'błysk na każdy bit, podskoki, kolor co bit', 'md.rave': 'szybkie losowe ruchy, pościg kolorów, mocne strobo',
     'md.hits': 'światło zapala się na każde uderzenie i gaśnie — idealnie w bit',
     'md.auto': 'sam dobiera styl: cicho = płynnie, głośno = szybko, drop = uderzenia', 'ap.now': 'teraz: {m}',
+    'mood.ai': 'Auto AI', 'md.ai': 'reżyser AI: gatunek, nastrój i części utworu — jak w zakładce Pokaz',
     'ap.white': 'Tylko białe światło', 'ap.lasers': 'Lasery na szybkie fragmenty', 'ap.lasersS': 'pulsują w bit, gdy muzyka jest szybka (od 135 BPM) albo na dropie — tylko gdy lasery są uzbrojone',
     'as.white': 'Tylko białe światło', 'as.lasers': 'Lasery w bit na szybkich fragmentach', 'as.flashAll': 'Błysk na każde uderzenie (cały utwór)',
     'pp.neon': 'Neon', 'pp.warm': 'Ciepłe', 'pp.cold': 'Zimne', 'pp.rainbow': 'Tęcza', 'pp.club': 'Klub', 'pp.white': 'Biel',
@@ -84,6 +85,7 @@ PH.addI18n({
     'md.dance': 'flash su ogni beat, rimbalzi, colore a ogni beat', 'md.rave': 'movimenti veloci casuali, inseguimento colori, strobo forte',
     'md.hits': 'la luce si accende a ogni colpo e si spegne — perfettamente a tempo',
     'md.auto': 'sceglie da solo: piano = morbido, forte = veloce, drop = colpi', 'ap.now': 'ora: {m}',
+    'mood.ai': 'Auto AI', 'md.ai': 'regista AI: genere, umore e parti del brano — come nella scheda Show',
     'ap.white': 'Solo luce bianca', 'ap.lasers': 'Laser nelle parti veloci', 'ap.lasersS': 'pulsano a tempo quando la musica è veloce (da 135 BPM) o sul drop — solo con i laser armati',
     'as.white': 'Solo luce bianca', 'as.lasers': 'Laser a tempo nelle parti veloci', 'as.flashAll': 'Flash su ogni colpo (tutto il brano)',
     'pp.neon': 'Neon', 'pp.warm': 'Caldi', 'pp.cold': 'Freddi', 'pp.rainbow': 'Arcobaleno', 'pp.club': 'Club', 'pp.white': 'Bianco',
@@ -107,14 +109,20 @@ PH.addI18n({
 const FX = {
   move: { color: '#2b8cff', kinds: { circle: ['Koło', 'Cerchio'], figure8: ['Ósemka', 'Otto'], sweep: ['Wahadło', 'Pendolo'],
     tilt_wave: ['Fala', 'Onda'], square: ['Kwadrat', 'Quadrato'], triangle: ['Trójkąt', 'Triangolo'], spiral: ['Spirala', 'Spirale'],
-    bounce: ['Odbicia', 'Rimbalzo'], fan: ['Wachlarz', 'Ventaglio'], random: ['Losowo', 'Casuale'], position: ['Pozycja', 'Posizione'] } },
+    bounce: ['Odbicia', 'Rimbalzo'], fan: ['Wachlarz', 'Ventaglio'], random: ['Losowo', 'Casuale'], position: ['Pozycja', 'Posizione'],
+    ballyhoo: ['Ballyhoo', 'Ballyhoo'], crossfire: ['Krzyżowy ogień', 'Fuoco incrociato'], searchlight: ['Reflektory premiery', 'Fari da prima'],
+    fly_out: ['Na publiczność', 'Sul pubblico'], mirror: ['Lustro', 'Specchio'], rise: ['Wznoszenie', 'Salita'], shape_morph: ['Morfing kształtów', 'Forme che cambiano'] } },
   color: { color: '#a855f7', kinds: { rainbow: ['Tęcza', 'Arcobaleno'], chase: ['Pościg kolorów', 'Inseguimento'],
     two_color: ['Dwa kolory', 'Due colori'], gradient: ['Przejście', 'Sfumatura'], fire: ['Ogień', 'Fuoco'], ocean: ['Ocean', 'Oceano'],
-    static_color: ['Kolor stały', 'Colore fisso'] } },
+    static_color: ['Kolor stały', 'Colore fisso'], color_morph: ['Morfing kolorów', 'Morph di colori'], split: ['Dwie strony', 'Due lati'],
+    sunrise: ['Świt', 'Alba'], aurora: ['Zorza', 'Aurora'], noir: ['Noir', 'Noir'], candle: ['Świece', 'Candele'], police: ['Policja', 'Polizia'],
+    desaturate: ['Do bieli', 'Verso il bianco'] } },
   dim: { color: '#f59e0b', kinds: { flash: ['Flash', 'Flash'], pulse: ['Puls', 'Pulsazione'], breathe: ['Oddech', 'Respiro'],
     blink: ['Miganie', 'Lampeggio'], heartbeat: ['Serce', 'Battito'], sparkle: ['Iskry', 'Scintille'], saw: ['Narastanie', 'Rampa'],
     strobe: ['Strobe', 'Strobo'], fade_in: ['Rozjaśnij', 'Dissolvi in'], fade_out: ['Wygaś', 'Dissolvi out'], dark: ['Ciemność', 'Buio'],
-    hit: ['Uderzenie', 'Colpo'], wave: ['Fala przez lampy', 'Onda sulle luci'], beat: ['Błysk w bit', 'Flash a tempo'] } },
+    hit: ['Uderzenie', 'Colpo'], wave: ['Fala przez lampy', 'Onda sulle luci'], beat: ['Błysk w bit', 'Flash a tempo'],
+    blinder: ['Blinder', 'Blinder'], chase_beat: ['Pościg w bit', 'Inseguimento a tempo'], stack: ['Schody', 'Scala'], stutter: ['Stutter', 'Stutter'],
+    riser: ['Narastanie (riser)', 'Crescendo (riser)'], lightning: ['Błyskawice', 'Fulmini'], twinkle: ['Gwiazdy', 'Stelle'], glow: ['Stałe światło', 'Luce fissa'] } },
   beam: { color: '#0891b2', kinds: { gobo: ['Gobo', 'Gobo'], gobo_shake: ['Drżenie gobo', 'Gobo vibra'], gobo_spin: ['Obrót gobo', 'Gobo ruota'],
     laser_hit: ['Laser w bit', 'Laser a tempo'], laser_on: ['Laser włączony', 'Laser acceso'], spot: ['Reflektor na osobę', 'Occhio di bue'] } },
   preset: { color: '#db2777', kinds: {} },                       // user effects, loaded from /api/presets
@@ -130,11 +138,13 @@ const fxName = (k) => {
   return e ? e[LANG === 'it' ? 1 : 0] : k;
 };
 const catName = (c) => t(`mu.cat.${c}`);
-const ONE_SHOT = { flash: 1.0, fade_in: 2.5, fade_out: 2.5, hit: 0.5 };
+const ONE_SHOT = { flash: 1.0, fade_in: 2.5, fade_out: 2.5, hit: 0.5, blinder: 1.6 };
 // natural cycle length in beats (used when the BPM is known: effects follow the music)
 const DEF_BEATS = { circle: 8, figure8: 8, sweep: 8, tilt_wave: 4, square: 8, triangle: 6, spiral: 16, bounce: 4, fan: 8,
   random: 2, path: 8, rainbow: 16, chase: 1, two_color: 2, gradient: 8, ocean: 16, sequence: 1, pulse: 1, breathe: 4, blink: 1,
-  heartbeat: 2, sparkle: 0.25, saw: 1, pattern: 4, wave: 2, beat: 1, laser_hit: 1 };
+  heartbeat: 2, sparkle: 0.25, saw: 1, pattern: 4, wave: 2, beat: 1, laser_hit: 1,
+  ballyhoo: 4, crossfire: 4, searchlight: 16, fly_out: 4, mirror: 4, rise: 16, shape_morph: 4, color_morph: 4, split: 8, sunrise: 32,
+  aurora: 16, noir: 16, police: 2, desaturate: 16, stack: 4, riser: 16, lightning: 4 };
 const DEF_PARAMS = { circle: { speed: 0.35, size: 35 }, figure8: { speed: 0.3, size: 35 }, sweep: { speed: 0.25, size: 70 },
   tilt_wave: { speed: 0.4, size: 30 }, square: { speed: 0.25, size: 35 }, triangle: { speed: 0.3, size: 35 }, spiral: { speed: 0.4, size: 40 },
   bounce: { speed: 0.5, size: 35 }, fan: { speed: 0.2, size: 60 }, random: { speed: 1, size: 45 }, position: { pan: 0.5, tilt: 0.5 },
@@ -143,8 +153,13 @@ const DEF_PARAMS = { circle: { speed: 0.35, size: 35 }, figure8: { speed: 0.3, s
   static_color: { color_a: [0, 140, 255] }, pulse: { speed: 1 }, breathe: { speed: 0.25 }, blink: { speed: 2 }, heartbeat: { speed: 1 },
   sparkle: { speed: 8 }, saw: { speed: 1 }, flash: {}, strobe: { speed: 210 }, fade_in: {}, fade_out: {}, dark: {},
   gobo: { value: 12 }, gobo_shake: { value: 96 }, gobo_spin: { value: 192 }, hit: { strength: 1, curve: 2 }, wave: { speed: 1, width: 0.35 },
-  beat: { floor: 0, curve: 2.4 }, laser_hit: { duty: 0.4 }, laser_on: {}, spot: {} };
-const NO_FADE = new Set(['flash', 'hit', 'kicks', 'strobe', 'fade_in', 'fade_out', 'dark', 'beat', 'laser_hit', 'laser_on', 'spot']);
+  beat: { floor: 0, curve: 2.4 }, laser_hit: { duty: 0.4 }, laser_on: {}, spot: {},
+  ballyhoo: { speed: 0.25, size: 50 }, crossfire: { speed: 0.3, size: 45 }, searchlight: { speed: 0.1, size: 40, lift: 25 },
+  fly_out: { speed: 0.25, lift: 30, spread: 0.2 }, mirror: { speed: 0.3, size: 50 }, rise: { lift: 30 }, shape_morph: { speed: 0.3, size: 35, hold: 2 },
+  color_morph: { speed: 0.25, hold: 0.35 }, split: { speed: 0.25, hold: 0.7 }, sunrise: { speed: 0.03 }, aurora: { speed: 0.08, spread: 0.2 },
+  noir: { speed: 0.06 }, candle: { speed: 1 }, police: { speed: 1 }, desaturate: {}, blinder: { decay: 0.9 }, chase_beat: { floor: 0.12 },
+  stack: { floor: 0 }, stutter: { div: 4, duty: 0.5 }, riser: { floor: 0.15 }, lightning: { speed: 0.4, floor: 0.08 }, twinkle: { speed: 3, floor: 0.35 }, glow: { level: 1 } };
+const NO_FADE = new Set(['flash', 'hit', 'kicks', 'strobe', 'fade_in', 'fade_out', 'dark', 'beat', 'laser_hit', 'laser_on', 'spot', 'blinder', 'stutter', 'chase_beat', 'lightning']);
 const LANES = ['move', 'color', 'dim', 'beam', 'preset'];
 function fxCatalogue() {        // for other modules (custom gesture → effect)
   const out = [];
@@ -152,121 +167,54 @@ function fxCatalogue() {        // for other modules (custom gesture → effect)
   return out;
 }
 PH.fxCatalogue = fxCatalogue;
-const curBpm = () => (MU.running && MU.bpm ? MU.bpm : TL.bpm) || null;
+const curBpm = () => (PH.live && PH.live.running && PH.live.locked && PH.live.bpm ? PH.live.bpm : TL.bpm) || null;
 
-/* ============================================================ 1. LIVE INPUT + BEAT DETECTION */
+/* ============================================================ 1. LIVE INPUT (shared engine: live.js → AudioWorklet beat tracker) */
 const MU = {
-  ctx: null, stream: null, an: null, buf: null, running: false,
-  hist: [], lastBeat: 0, beatTimes: [], bpm: null, level: 0, fastE: 0, slowE: 0, lastDrop: 0, flash: 0,
-  wave: null, lastLevel: 0, peak: 0.08, confidence: 0,
+  get running() { return !!(PH.live && PH.live.running); },
+  get bpm() { return PH.live && PH.live.locked ? PH.live.bpm : null; },
+  buf: null,
 };
-async function muDevices() {
-  const sel = $('#mu-dev');
-  try {
-    const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput');
-    const cur = sel.value;
-    sel.innerHTML = devs.map((d, i) => `<option value="${esc(d.deviceId)}">${esc(d.label || `Wejście audio ${i + 1}`)}</option>`).join('')
-      || '<option value="">brak wejść audio</option>';
-    if (cur) sel.value = cur;
-  } catch (e) { sel.innerHTML = '<option value="">brak dostępu do audio</option>'; }
-}
+async function muDevices() { if (PH.live) await PH.live.listInputs($('#mu-dev')); }
 async function muStart() {
-  if (MU.running) { muStop(); return; }
-  try {
-    const id = $('#mu-dev').value;
-    MU.stream = await navigator.mediaDevices.getUserMedia({ audio: {
-      deviceId: id ? { exact: id } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false, latency: 0 } });
-    MU.ctx = new AudioContext({ latencyHint: 'interactive' });
-    const src = MU.ctx.createMediaStreamSource(MU.stream);
-    MU.an = MU.ctx.createAnalyser(); MU.an.fftSize = 1024; MU.an.smoothingTimeConstant = 0.05;
-    src.connect(MU.an);
-    MU.buf = new Uint8Array(MU.an.frequencyBinCount);
-    MU.wave = new Float32Array(MU.an.fftSize);
-    MU.lastBeat = MU.lastDrop = MU.lastLevel = MU.fastE = MU.slowE = 0;
-    MU.bpm = null; MU.peak = 0.08; MU.confidence = 0;
-    MU.stream.getAudioTracks().forEach((track) => { track.onended = () => { if (MU.running) muStop(); }; });
-    await MU.ctx.resume();
-    MU.running = true; MU.hist = []; MU.beatTimes = [];
-    $('#mu-start').textContent = 'Stop'; $('#mu-start').classList.add('on');
-    muDevices();
-  } catch (e) {
-    muStop();
-    toast('Nie mogę otworzyć wejścia audio: ' + e.message, 'err');
-  }
+  if (!PH.live) return;
+  await PH.live.toggle($('#mu-dev').value);
+  muButton();
 }
-function muStop() {
-  MU.running = false;
-  send({ type: 'audio_level', level: 0 });
-  if (MU.stream) MU.stream.getTracks().forEach((tr) => tr.stop());
-  if (MU.ctx) MU.ctx.close();
-  MU.ctx = MU.stream = MU.an = null;
-  MU.bpm = null; MU.level = MU.flash = MU.confidence = 0;
-  $('#mu-start').textContent = 'Start'; $('#mu-start').classList.remove('on');
-}
-function muTick(now) {
-  if (!MU.running || !MU.an) return;
-  MU.an.getByteFrequencyData(MU.buf);
-  const binHz = MU.ctx.sampleRate / MU.an.fftSize;
-  const lo = Math.max(1, Math.round(40 / binHz)), hi = Math.max(lo + 1, Math.round(160 / binHz));
-  let e = 0; for (let i = lo; i <= hi; i++) e += (MU.buf[i] / 255) ** 2;
-  e /= (hi - lo + 1);
-  let lvl = 0; for (let i = 0; i < MU.buf.length; i++) lvl += MU.buf[i];
-  MU.level = lvl / MU.buf.length / 255;
-  // True waveform RMS distinguishes a quiet section from a strong isolated kick.
-  MU.an.getFloatTimeDomainData(MU.wave);
-  const rms = Math.sqrt(MU.wave.reduce((sum, v) => sum + v * v, 0) / MU.wave.length);
-  MU.peak = Math.max(0.08, rms, MU.peak * 0.9998);
-  if (now - MU.lastLevel >= 100) {
-    MU.lastLevel = now;
-    send({ type: 'audio_level', level: rms < 0.003 ? 0 : clamp(rms / MU.peak, 0, 1) });
-  }
-  if (now - MU.lastBeat > 2500) { MU.beatTimes = []; MU.bpm = null; MU.confidence = 0; }
-  MU.hist.push(e); if (MU.hist.length > 70) MU.hist.shift();
-  const avg = MU.hist.reduce((a, b) => a + b, 0) / MU.hist.length;
-  MU.fastE = MU.fastE * 0.9 + e * 0.1; MU.slowE = MU.slowE * 0.997 + e * 0.003;
-  const sens = Number($('#mu-sens').value);
-  if (e > avg * sens && e > 0.015 && rms > 0.003 && now - MU.lastBeat > 240) {
-    MU.lastBeat = now; MU.flash = 1;
-    MU.beatTimes.push(now); if (MU.beatTimes.length > 17) MU.beatTimes.shift();
-    if (MU.beatTimes.length > 4) {
-      const iv = MU.beatTimes.slice(1).map((v, i) => v - MU.beatTimes[i]).sort((a, b) => a - b);
-      let bpm = 60000 / iv[Math.floor(iv.length / 2)];
-      while (bpm < 65) bpm *= 2; while (bpm > 200) bpm /= 2;
-      const median = iv[Math.floor(iv.length / 2)];
-      MU.confidence = iv.filter((v) => Math.abs(v - median) < median * 0.18).length / iv.length;
-      if (MU.confidence >= 0.6) MU.bpm = MU.bpm ? MU.bpm * 0.8 + bpm * 0.2 : bpm;
-    }
-    const drop = MU.fastE > MU.slowE * 1.9 && MU.slowE > 0.01 && now - MU.lastDrop > 8000;
-    if (drop) MU.lastDrop = now;
-    send({ type: 'beat', source: 'live', strength: clamp(e / Math.max(1e-4, avg) - 1, 0, 1), drop, bpm: MU.bpm ? Math.round(MU.bpm) : null });
-  }
-  MU.flash *= 0.88;
+function muButton() {
+  const b = $('#mu-start'); if (!b) return;
+  b.textContent = MU.running ? 'Stop' : 'Start'; b.classList.toggle('on', MU.running);
 }
 function muDraw() {
   const cv = $('#mu-spec'); if (!cv) return;
   const [W, H, d] = fitCanvas(cv), ctx = cv.getContext('2d');
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#f7f7fa'; ctx.fillRect(0, 0, W, H);
-  if (MU.running && MU.buf) {
+  ctx.fillStyle = '#f8f7f4'; ctx.fillRect(0, 0, W, H);
+  const an = PH.live && PH.live.an;
+  if (MU.running && an) {
+    if (!MU.buf || MU.buf.length !== an.frequencyBinCount) MU.buf = new Uint8Array(an.frequencyBinCount);
+    an.getByteFrequencyData(MU.buf);
     const bars = 48, n = MU.buf.length;
     for (let b = 0; b < bars; b++) {
       const i0 = Math.floor(Math.pow(n, b / bars)), i1 = Math.max(i0 + 1, Math.floor(Math.pow(n, (b + 1) / bars)));
       let v = 0; for (let i = i0; i < i1 && i < n; i++) v = Math.max(v, MU.buf[i]);
       const h = (v / 255) * (H - 6 * d), x = (b / bars) * W;
       const g = ctx.createLinearGradient(0, H, 0, H - h);
-      g.addColorStop(0, '#c9b5fb'); g.addColorStop(1, b < 6 ? '#7b3ff2' : '#14a9bd');
+      g.addColorStop(0, '#d6ccfb'); g.addColorStop(1, b < 6 ? '#5a3ee8' : '#8c74f5');
       ctx.fillStyle = g; ctx.fillRect(x + 1 * d, H - h, W / bars - 2 * d, h);
     }
   } else {
-    ctx.fillStyle = '#858996'; ctx.font = `${12 * d}px Inter, sans-serif`; ctx.textAlign = 'center';
+    ctx.fillStyle = '#858996'; ctx.font = `${12 * d}px Figtree, sans-serif`; ctx.textAlign = 'center';
     ctx.fillText(tr('Wybierz wejście (kabel z miksera) i kliknij Start'), W / 2, H / 2 + 4 * d);
   }
-  const led = $('#mu-led');
-  led.style.background = `rgba(43,140,255,${0.15 + 0.85 * MU.flash})`;
-  led.style.boxShadow = MU.flash > 0.3 ? `0 0 ${18 * MU.flash}px rgba(43,140,255,.9)` : 'none';
+  const live = PH.live || {};
+  const led = $('#mu-led'), fl = Math.max(0, 1 - (performance.now() - (live.beatAt || 0)) / 180);
+  led.style.background = `rgba(90,62,232,${0.15 + 0.85 * (live.locked ? fl : 0)})`;
+  led.style.boxShadow = live.locked && fl > 0.3 ? `0 0 ${18 * fl}px rgba(90,62,232,.9)` : 'none';
   const bpm = curBpm();
   setText($('#mu-bpm'), bpm ? `${Math.round(bpm)} BPM` : '— BPM');
-  $('#mu-lvl').style.width = `${Math.round(Math.min(1, MU.level * 2.2) * 100)}%`;
+  $('#mu-lvl').style.width = `${Math.round(Math.min(1, (live.level || 0) * 1.4) * 100)}%`;
+  muButton();
 }
 
 /* ============================================================ 2. EFFECT PAD + REACTIONS */
@@ -1003,11 +951,11 @@ function tlPlay() {
     TL.lastT = TL.audio.currentTime; TL.audio.play();
     if (TL.bpm) send({ type: 'bpm', value: TL.bpm });
     playBtn(true);
-  } else { TL.audio.pause(); tlStopCues(); playBtn(false); }
+  } else { TL.audio.pause(); tlStopCues(); playBtn(false); send({ type: 'grid_off' }); }
 }
 function playBtn(on) { $('#tl-play').innerHTML = `${ic(on ? 'pause' : 'play')}<span>${esc(t(on ? 'mu.pause' : 'mu.play'))}</span>`; }
-function tlStop() { TL.audio.pause(); tlSeek(0); playBtn(false); }
-TL.audio.addEventListener('ended', () => { tlStopCues(); playBtn(false); });
+function tlStop() { TL.audio.pause(); tlSeek(0); playBtn(false); send({ type: 'grid_off' }); }
+TL.audio.addEventListener('ended', () => { tlStopCues(); playBtn(false); send({ type: 'grid_off' }); });
 
 function tlTick() {
   if (!TL.duration || TL.audio.paused) return;
@@ -1017,14 +965,24 @@ function tlTick() {
     if (inside && !TL.on.has(c.id)) { TL.on.add(c.id); fireCue(c, now); }
     else if (!inside && TL.on.has(c.id)) { TL.on.delete(c.id); send({ type: 'fx_stop', id: 'cue-' + c.id }); }
   }
-  // beats of the song drive the beat reactions (flash / colour / move on beat)
+  // the song's beat grid drives the beat clock on the server (it fires the beats itself, ahead by the sync);
+  // how hard each beat is goes out a moment before it
+  const early = now + 0.06;
   TL.beats.forEach((b, i) => {
-    if (b > TL.lastT && b <= now) {
+    if (b > TL.lastT + 0.06 && b <= early) {
       const en = TL.energy[i] || 0, prev = TL.energy[i - 4] || en;
       send({ type: 'beat', strength: en, drop: i % 4 === 0 && en - prev > 0.3, bpm: Math.round(TL.bpm) });
     }
   });
   TL.lastT = now;
+  const pnow = performance.now();
+  if (TL.bpm && TL.beats.length && pnow - (TL.gridAt || 0) > 250) {
+    TL.gridAt = pnow;
+    const at = TL.audio.currentTime, rate = TL.audio.playbackRate || 1;
+    let lo = 0, hi = TL.beats.length - 1;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (TL.beats[mid] > at) hi = mid; else lo = mid + 1; }
+    if (TL.beats[lo] > at) send({ type: 'grid', bpm: TL.bpm * rate, next_in: (TL.beats[lo] - at) / rate, beat_in_bar: lo % 4, confidence: 1, source: 'timeline' });
+  }
   const x = xOf(now), w = $('#tl-canvas').clientWidth;
   if (!TL.drag && (x > w - 40 || x < TL.LABEL)) TL.scroll = Math.max(0, now - (w - TL.LABEL) * 0.15 / TL.pps);
 }
@@ -1055,7 +1013,7 @@ function asOptions() {
   let o = {};
   try { o = JSON.parse(localStorage.getItem('ph_as') || '{}'); } catch (e) { /* ignore */ }
   const ap = (S.st && S.st.effects.autopilot) || {};
-  return { mood: o.mood || ap.mood || 'dynamic', off: o.off || [], colorsOff: o.colorsOff || [], kicks: o.kicks ?? true, drops: o.drops ?? true,
+  return { mood: o.mood || (ap.mood === 'ai' ? 'auto' : ap.mood) || 'dynamic', off: o.off || [], colorsOff: o.colorsOff || [], kicks: o.kicks ?? true, drops: o.drops ?? true,
     gobo: o.gobo ?? true, white: o.white ?? false, lasers: o.lasers ?? true, flashAll: o.flashAll ?? false, energy: o.energy ?? 0.6, spread: o.spread ?? 0.25, order: o.order || 'left', lamps: o.lamps || 'all', keep: o.keep ?? false };
 }
 function openAutoShow() {
@@ -1480,6 +1438,7 @@ function crPadPointer() {
 
 /* ============================================================ 5. AUTOPILOT + STYLE + PALETTE */
 const MOOD_IC = { auto: ic('sparkle'), calm: ic('moon'), dynamic: ic('wave'), dance: ic('music'), hits: ic('bolt'), rave: ic('flame') };
+const AP_MOOD_IC = { ai: ic('target'), ...MOOD_IC };          // the autopilot also offers the AI director (Pokaz)
 const PAL_PRESETS = {
   neon: [[255, 0, 120], [0, 220, 255], [180, 0, 255], [0, 255, 120]], warm: [[255, 60, 0], [255, 140, 0], [255, 210, 40], [255, 0, 60]],
   cold: [[0, 80, 255], [0, 200, 255], [120, 0, 255], [255, 255, 255]], rainbow: [[255, 0, 0], [255, 140, 0], [255, 255, 0], [0, 255, 0], [0, 120, 255], [160, 0, 255]],
@@ -1506,7 +1465,7 @@ function buildAutopilot() {
   sync.className = 'lbl rowp'; sync.title = t('mu.syncT');
   sync.innerHTML = `<span data-i18n="mu.sync">${esc(t('mu.sync'))}</span> <input type="number" id="tl-sync" min="-300" max="300" step="5" value="${TL.sync}" style="width:70px"> ms`;
   $('#tl-auto').after(sync);
-  $('#tl-sync').onchange = (e) => { TL.sync = Number(e.target.value) || 0; localStorage.setItem('ph_sync', TL.sync); };
+  $('#tl-sync').onchange = (e) => { TL.sync = Number(e.target.value) || 0; localStorage.setItem('ph_sync', TL.sync); send({ type: 'sync', ms: TL.sync }); };
 }
 function buildApCard() {
   const old = $('.ap-card'); if (old) old.remove();
@@ -1521,7 +1480,7 @@ function buildApCard() {
       <div class="ap-row"><label class="switch"><input type="checkbox" id="ap-white"><span></span>${esc(t('ap.white'))}</label>
         <label class="switch" title="${esc(t('ap.lasersS'))}"><input type="checkbox" id="ap-lasers"><span></span>${esc(t('ap.lasers'))}</label></div>
       <div class="lbl">${esc(t('ap.style'))}</div>
-      <div class="moods" id="ap-moods">${Object.keys(MOOD_IC).map((m) => `<button class="mood" data-mood="${m}"><span class="ic">${MOOD_IC[m]}</span><b>${esc(t(`mood.${m}`))}</b><small>${esc(t(`md.${m}`))}</small></button>`).join('')}</div>
+      <div class="moods" id="ap-moods">${Object.keys(AP_MOOD_IC).map((m) => `<button class="mood" data-mood="${m}"><span class="ic">${AP_MOOD_IC[m]}</span><b>${esc(t(`mood.${m}`))}</b><small>${esc(t(`md.${m}`))}</small></button>`).join('')}</div>
       <div class="lbl">${esc(t('ap.pal'))}</div>
       <div class="palette" id="ap-pal"></div>
       <div class="pal-presets">${Object.entries(PAL_PRESETS).map(([k, cols]) => `<button data-pp="${k}">${cols.map((c) => `<i style="background:rgb(${c.join(',')})"></i>`).join('')} ${esc(t(`pp.${k}`))}</button>`).join('')}</div>
@@ -1592,7 +1551,7 @@ async function musicInit() {
   $('#tl-delete').onclick = tlDeleteShow;
   navigator.mediaDevices && navigator.mediaDevices.addEventListener && navigator.mediaDevices.addEventListener('devicechange', muDevices);
   // timing runs on its own clock so a show keeps playing while the window is in the background
-  setInterval(() => { muTick(performance.now()); tlTick(); }, 10);
+  setInterval(tlTick, 10);
   const loop = () => {
     if (S.tab === 'music') { muDraw(); tlDraw(); }
     if ($('#cr-dialog') && $('#cr-dialog').open) crPadDraw();
