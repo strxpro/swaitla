@@ -4,7 +4,7 @@
 
 1. Zainstaluj **Git** (git-scm.com) i otwórz wiersz poleceń w folderze, w którym ma być Lumo.
 2. Pobierz program:
-   `git clone -b lumo-5 https://github.com/strxpro/swaitla.git Lumo`
+   `git clone https://github.com/strxpro/swaitla.git Lumo`
 3. Wejdź do folderu `Lumo` i kliknij dwukrotnie **`run.bat`**. Za pierwszym razem sam:
    - znajdzie Pythona 3.10+, a jeśli go nie ma, zaproponuje instalację;
    - zainstaluje pakiety (kilka minut, potrzebny internet);
