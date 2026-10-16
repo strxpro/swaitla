@@ -15,15 +15,15 @@
     pl: {
       'sm.pick': 'Lampa', 'sm.move': 'Ruch', 'sm.center': 'Środek', 'sm.color': 'Kolor', 'sm.white': 'Biały', 'sm.dim': 'Jasność', 'sm.strobe': 'Strobo', 'sm.off': 'wył.',
       'sm.gobo': 'Gobo', 'sm.wheel': 'Koło kolorów', 'sm.zoom': 'Zoom', 'sm.focus': 'Focus', 'sm.iris': 'Przysłona', 'sm.prism': 'Pryzmat', 'sm.laser': 'LASER',
-      'sm.laserArm': 'Lasery są zablokowane. Uzbroić? Nie patrz w wiązkę.', 'sm.sound': 'SOUND', 'sm.auto': 'AUTO', 'sm.speed': 'Prędkość ruchu', 'sm.raw': 'Zaawansowane / RAW DMX',
-      'sm.none': 'Dodaj lampę w Ustawieniach → Moje lampy.', 'sm.lz': 'Laser', 'sm.lzOn': 'Włącz laser', 'sm.lzOff': 'Wyłącz laser', 'sm.lzArm': 'Uzbrój lasery',
+      'sm.laserArm': 'Lasery są zablokowane. Uzbroić? Nie patrz w wiązkę.', 'sm.sound': 'SOUND', 'sm.autoBtn': 'AUTO', 'sm.speed': 'Prędkość ruchu', 'sm.raw': 'Zaawansowane / RAW DMX',
+      'sm.noLamps': 'Dodaj lampę w Ustawieniach → Moje lampy.', 'sm.lz': 'Laser', 'sm.lzOn': 'Włącz laser', 'sm.lzOff': 'Wyłącz laser', 'sm.lzArm': 'Uzbrój lasery',
       'sm.lzRed': 'Czerwony', 'sm.lzGreen': 'Zielony', 'sm.lzBoth': 'Żółty (oba)', 'sm.lzBlue': 'Niebieski', 'sm.lzProg': 'Program lasera', 'sm.lzLocked': 'Lasery są zablokowane — najpierw „Uzbrój”. Nie patrz w wiązkę.', 'sm.open': 'otwarte', 'sm.fast': 'szybko', 'sm.slow': 'wolno', 'sm.all': 'Wszystkie',
     },
     it: {
       'sm.pick': 'Luce', 'sm.move': 'Movimento', 'sm.center': 'Centro', 'sm.color': 'Colore', 'sm.white': 'Bianco', 'sm.dim': 'Luminosità', 'sm.strobe': 'Strobo', 'sm.off': 'off',
       'sm.gobo': 'Gobo', 'sm.wheel': 'Ruota colori', 'sm.zoom': 'Zoom', 'sm.focus': 'Focus', 'sm.iris': 'Iride', 'sm.prism': 'Prisma', 'sm.laser': 'LASER',
-      'sm.laserArm': 'I laser sono bloccati. Armarli? Non guardare il raggio.', 'sm.sound': 'SOUND', 'sm.auto': 'AUTO', 'sm.speed': 'Velocità movimento', 'sm.raw': 'Avanzato / RAW DMX',
-      'sm.none': 'Aggiungi una luce in Impostazioni → Le mie luci.', 'sm.lz': 'Laser', 'sm.lzOn': 'Accendi laser', 'sm.lzOff': 'Spegni laser', 'sm.lzArm': 'Arma i laser',
+      'sm.laserArm': 'I laser sono bloccati. Armarli? Non guardare il raggio.', 'sm.sound': 'SOUND', 'sm.autoBtn': 'AUTO', 'sm.speed': 'Velocità movimento', 'sm.raw': 'Avanzato / RAW DMX',
+      'sm.noLamps': 'Aggiungi una luce in Impostazioni → Le mie luci.', 'sm.lz': 'Laser', 'sm.lzOn': 'Accendi laser', 'sm.lzOff': 'Spegni laser', 'sm.lzArm': 'Arma i laser',
       'sm.lzRed': 'Rosso', 'sm.lzGreen': 'Verde', 'sm.lzBoth': 'Giallo (entrambi)', 'sm.lzBlue': 'Blu', 'sm.lzProg': 'Programma laser', 'sm.lzLocked': 'I laser sono bloccati — prima „Arma”. Non guardare il raggio.', 'sm.open': 'aperto', 'sm.fast': 'veloce', 'sm.slow': 'lento', 'sm.all': 'Tutte',
     },
   });
@@ -93,7 +93,7 @@
   function build(st) {
     const box = $('#simple-ctl'); if (!box) return;
     const L = st.fixtures.filter((f) => !NON_LIGHT.includes(f.type));
-    if (!L.length) { box.innerHTML = `<div class="fold-empty">${ic('lamp')}<p>${esc(t('sm.none'))}</p></div>`; return; }
+    if (!L.length) { box.innerHTML = `<div class="fold-empty">${ic('lamp')}<p>${esc(t('sm.noLamps'))}</p></div>`; return; }
     const f = L.find((x) => x.id === st.active_id) || L[0];
     const F = features(f);
     const blk = (title, inner, cls = '') => `<section class="sm-b ${cls}"><h4>${esc(title)}</h4>${inner}</section>`;
@@ -114,7 +114,7 @@
     const btns = [];
     if (F.prism) btns.push(`<button class="sm-tog${(f.overrides || {})[F.prism[0]] ? ' on' : ''}" data-tog="${F.prism[0]}:${mid(F.prism[1], 128)}">${ic('diamond')}<span>${esc(t('sm.prism'))}</span></button>`);
     if (F.sound) btns.push(`<button class="sm-tog${(f.overrides || {})[F.sound[0]] ? ' on' : ''}" data-tog="${F.sound[0]}:${mid(F.sound[1], 200)}">${ic('wave')}<span>${esc(t('sm.sound'))}</span></button>`);
-    if (F.auto) btns.push(`<button class="sm-tog${(f.overrides || {})[F.auto[0]] ? ' on' : ''}" data-tog="${F.auto[0]}:${mid(F.auto[1], 128)}">${ic('auto')}<span>${esc(t('sm.auto'))}</span></button>`);
+    if (F.auto) btns.push(`<button class="sm-tog${(f.overrides || {})[F.auto[0]] ? ' on' : ''}" data-tog="${F.auto[0]}:${mid(F.auto[1], 128)}">${ic('auto')}<span>${esc(t('sm.autoBtn'))}</span></button>`);
     if (F.laser) right.unshift(laserBlock(f, st));
     if (false) btns.push(`<button class="sm-laser${st.lasers_enabled && (f.values.laser || 0) > 0 ? ' on' : ''}" data-laser>${ic('laser')}<span>${esc(t('sm.laser'))}</span><small>${esc(st.lasers_enabled ? '' : t('dk.locked'))}</small></button>`);
     if (btns.length) right.push(blk('', `<div class="sm-btns">${btns.join('')}</div>`));

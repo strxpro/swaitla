@@ -492,6 +492,19 @@ function pickFixture(e) {
   return hit ? hit.object.userData.fid : null;
 }
 
+// the lamp drawn nearest to the pointer (within px on the screen) - small heads are easy to hit
+function nearFixture(e, px) {
+  const r = renderer.domElement.getBoundingClientRect(), v = new THREE.Vector3();
+  let best = null, bd = px;
+  for (const [fid, h] of heads) {
+    h.root.getWorldPosition(v).project(camera);
+    if (v.z > 1) continue;                            // behind the camera
+    const d = Math.hypot(r.left + (v.x + 1) / 2 * r.width - e.clientX, r.top + (1 - v.y) / 2 * r.height - e.clientY);
+    if (d < bd) { bd = d; best = fid; }
+  }
+  return best;
+}
+
 function makeGhost(mount) {
   const st = PH.S.st, y = mount === 'hang' ? st.stage.truss_height : 0.4;
   const g = new THREE.Group();
@@ -587,6 +600,24 @@ renderer.domElement.addEventListener('pointerup', (e) => {
     if (p) PH.send({ type: 'aim', x: p.x, y: 0, z: p.z, all: e.altKey });
   }
 });
+// right click (without dragging the view) = a menu: on a lamp its actions, on the floor add / aim / views
+let rdown = null;
+wrap.addEventListener('pointerdown', (e) => { if (e.button === 2) rdown = [e.clientX, e.clientY]; }, true);
+wrap.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  const moved = rdown && Math.hypot(e.clientX - rdown[0], e.clientY - rdown[1]) > 5;
+  rdown = null;
+  if (moved || P3.placing || !PH.lampMenu) return;           // a right-drag pans the view
+  const fid = pickFixture(e) ?? nearFixture(e, 40);
+  if (fid !== null) { PH.lampMenu(e.clientX, e.clientY, fid); return; }
+  const t = PH.t, p = floorPoint(e);
+  PH.stageMenu(e.clientX, e.clientY, [
+    ...(p ? [{ icon: 'target', label: t('cx.aim'), fn: () => PH.send({ type: 'aim', x: p.x, y: 0, z: p.z, all: true }) }] : []),
+    { icon: 'scene', label: t('cx.vFoh'), fn: () => setView('foh') },
+    { icon: 'arrows', label: t('cx.vTop'), fn: () => setView('top') },
+    { icon: 'move', label: t('cx.vSide'), fn: () => setView('side') },
+  ]);
+}, true);
 renderer.domElement.addEventListener('dblclick', (e) => {
   const fid = pickFixture(e);
   if (fid !== null) { const f = PH.fixtures().find((x) => x.id === fid); if (f) PH.openFixtureDialog(f); }

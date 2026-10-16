@@ -25,7 +25,7 @@
     { tab: 'music', fold: 'auto', sel: '.ap-card', ic: 'auto', k: 'music' },
     { tab: 'music', fold: 'timeline', sel: '.mu-tl', ic: 'film', k: 'timeline' },
     { tab: 'setup', sel: '#steps', ic: 'setup', k: 'setup' },
-    { sel: '#tour-btn', ic: 'help', k: 'end' },
+    { sel: '#help-btn', ic: 'help', k: 'end' },
   ];
   PH.addI18n({
     pl: {
@@ -47,7 +47,7 @@
       'tr.music.t': 'Autopilot i styl', 'tr.music.d': 'Wybierz styl (spokojny, dynamiczny, taneczny, rave) i kolory pokazu.', 'tr.music.h': 'Muzyka z miksera: „Na żywo” → Start. Albo wczytaj utwór na oś czasu.',
       'tr.timeline.t': 'Oś czasu', 'tr.timeline.d': 'Pokaz ułożony na utworze: klatki przyklejają się do kicków i bitów.', 'tr.timeline.h': 'Wybierz efekt → klik na osi · <b>przeciągnij puste miejsce</b> = zaznacz kilka · <b>Ctrl+C / Ctrl+V / Ctrl+D</b> · <b>Ctrl+Z</b> cofnij · Auto-show układa wszystko sam.',
       'tr.setup.t': 'Ustawienia', 'tr.setup.d': 'Wszystko w jednym miejscu: kabel, urządzenia i ich kanały, kalibracje, kamery, prędkość, przyciski i MIDI.', 'tr.setup.h': 'Zielony znak = gotowe. Pomarańczowy = warto sprawdzić.',
-      'tr.end.t': 'Gotowe', 'tr.end.d': 'Przewodnik jest zawsze tutaj.', 'tr.end.h': 'Miłego pokazu!',
+      'tr.end.t': 'Gotowe', 'tr.end.d': 'Pomoc i ten przewodnik są zawsze tutaj.', 'tr.end.h': 'Miłego pokazu!',
     },
     it: {
       'tr.next': 'Avanti', 'tr.back': 'Indietro', 'tr.done': 'Iniziamo', 'tr.skip': 'Chiudi',
@@ -68,7 +68,7 @@
       'tr.music.t': 'Autopilota e stile', 'tr.music.d': 'Scegli lo stile (calmo, dinamico, ballo, rave) e i colori dello show.', 'tr.music.h': 'Musica dal mixer: „Dal vivo” → Start. Oppure carica un brano nella timeline.',
       'tr.timeline.t': 'Timeline', 'tr.timeline.d': 'Lo show sul brano: i keyframe si agganciano a kick e beat.', 'tr.timeline.h': 'Scegli un effetto → clic sulla timeline · <b>trascina lo spazio vuoto</b> = seleziona più keyframe · <b>Ctrl+C / Ctrl+V / Ctrl+D</b> · <b>Ctrl+Z</b> annulla · Auto-show fa tutto da solo.',
       'tr.setup.t': 'Impostazioni', 'tr.setup.d': 'Tutto in un posto: cavo, dispositivi e canali, calibrazioni, camere, velocità, tasti e MIDI.', 'tr.setup.h': 'Segno verde = pronto. Arancione = da controllare.',
-      'tr.end.t': 'Fatto', 'tr.end.d': 'La guida è sempre qui.', 'tr.end.h': 'Buono show!',
+      'tr.end.t': 'Fatto', 'tr.end.d': 'L’aiuto e questa guida sono sempre qui.', 'tr.end.h': 'Buono show!',
     },
   });
 

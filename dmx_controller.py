@@ -174,6 +174,16 @@ def eval_aim(fit: dict, x: float, y: float) -> tuple[float, float]:
     return _clamp(pan, 0, 65535), _clamp(tilt, 0, 65535)
 
 
+def floor_correction(points: list, x: float, z: float) -> tuple[float, float]:
+    """Pan / tilt correction at floor spot (x, z) from the spots fixed with the arrows
+    (inverse-distance weighted: near a fixed spot exactly its correction, far away their average)."""
+    sp = st = sw = 0.0
+    for px, pz, dp, dt in points:
+        w = 1.0 / ((px - x) ** 2 + (pz - z) ** 2 + 0.25)
+        sp, st, sw = sp + w * dp, st + w * dt, sw + w
+    return (sp / sw, st / sw) if sw else (0.0, 0.0)
+
+
 def default_values() -> dict[str, float]:
     v = {"pan": HOME_16, "tilt": HOME_16, "dimmer": 0,
          "strobe": 0, "red": 255, "green": 255, "blue": 255}
@@ -211,6 +221,7 @@ class Fixture:
     aim_pan: list[float] | None = None    # calibrated pan at the left / right edge of the pointing area
     aim_tilt: list[float] | None = None   # calibrated tilt at the top / bottom edge of the pointing area
     shutter_open: int = 0                 # shutter value for "open, no strobe"
+    laser_mode: int | None = None         # laser: the 1st-channel (mode) value at which it shines; None = 255
     strobe_min: int = 1                   # shutter value for slowest strobe
     strobe_max: int = 255                 # shutter value for fastest strobe
     aim_points: dict | None = None        # person calibration {"main"|"stage": [[x, y, pan, tilt], ...]}
@@ -312,6 +323,9 @@ class Fixture:
             return int(round(c[name]))
         if name in ("laser", "laser_r", "laser_g"):
             return int(round(c["laser"])) if lasers else 0          # safety gate
+        if name == "macro" and self.type == "laser":                # cheap lasers: CH1 = off / auto / sound / DMX
+            on = lasers and c["laser"] > 0.5
+            return int(self.laser_mode if self.laser_mode is not None else 255) if on else 0
         if name in ("speed", "spin", "beam", "strip", "strip_speed", "macro", "aux1", "aux2",
                     "cwheel", "gobo"):
             return int(round(c[name]))
@@ -329,8 +343,8 @@ class Fixture:
         color_master = master * self.current["dimmer"] / 255.0 if nodim else master
         for i, name in enumerate(layout):
             idx = base + i
-            if 0 <= idx < 512 and dark and name not in POSITION_ROLES:
-                universe[idx] = 0
+            if 0 <= idx < 512 and ((dark and name not in POSITION_ROLES) or (self.type == "laser" and not lasers)):
+                universe[idx] = 0                     # blackout; a laser that is not armed gets only zeros
                 continue
             if 0 <= idx < 512 and nodim and name in COLOR_ROLES:
                 v = self.overrides[i] if i in self.overrides else self._channel_value(name, master, lasers)
@@ -347,6 +361,7 @@ class Fixture:
                 else:
                     v = self._channel_value(name, master, lasers)
                     if (v == 0 and self.defaults and str(i) in self.defaults and not name.startswith("laser")
+                            and self.type != "laser"                                 # a laser is dark between hits
                             and name not in ("reset", "lamp")):              # never a stored value on reset / lamp control
                         v = int(self.defaults[str(i)])
                     universe[idx] = v
@@ -365,11 +380,12 @@ class Fixture:
             "invert_pan": self.invert_pan, "invert_tilt": self.invert_tilt, "beam_deg": self.beam_deg,
             "flip_x": self.flip_x, "flip_y": self.flip_y, "enabled": self.enabled,
             "shutter_open": self.shutter_open, "strobe_min": self.strobe_min, "strobe_max": self.strobe_max,
+            "laser_mode": self.laser_mode,
             "aim_pan": self.aim_pan, "aim_tilt": self.aim_tilt, "show_home": self.show_home,
             "wheel": self.wheel, "gobos": self.gobos,
             "aim_points": {c: len(v) for c, v in (self.aim_points or {}).items()},
             "aim_err": {c: round(fit["err"] / 65535 * self.pan_deg, 2)
-                        for c, v in (self.aim_points or {}).items() if (fit := fit_aim(v))},
+                        for c, v in (self.aim_points or {}).items() if c != "floor" and (fit := fit_aim(v))},
             "values": {k: int(round(v)) for k, v in self.current.items()},
             "overrides": {str(k): v for k, v in self.overrides.items()},
             "caps": self.caps or {},
@@ -387,7 +403,7 @@ class Fixture:
             "flip_x": self.flip_x, "flip_y": self.flip_y, "enabled": self.enabled,
             "aim_pan": self.aim_pan, "aim_tilt": self.aim_tilt,
             "shutter_open": self.shutter_open, "strobe_min": self.strobe_min,
-            "strobe_max": self.strobe_max, "wheel": self.wheel, "gobos": self.gobos, "aim_points": self.aim_points,
+            "strobe_max": self.strobe_max, "laser_mode": self.laser_mode, "wheel": self.wheel, "gobos": self.gobos, "aim_points": self.aim_points,
             "show_home": self.show_home,
             "caps": self.caps, "defaults": self.defaults,
             "values": {k: int(round(v)) for k, v in self.target.items()},
@@ -397,7 +413,7 @@ class Fixture:
     def from_config(cls, d: dict[str, Any]) -> "Fixture":
         allowed = {"id", "name", "address", "model", "type", "library_key",
                    "pan_16bit", "tilt_16bit", "has_rgb", "channels",
-                   "icon_x", "icon_y", "shutter_open", "strobe_min", "strobe_max",
+                   "icon_x", "icon_y", "shutter_open", "strobe_min", "strobe_max", "laser_mode",
                    "pos", "mount", "yaw", "pan_deg", "tilt_deg", "invert_pan", "invert_tilt", "flip_x", "flip_y", "enabled",
                    "beam_deg", "aim_pan", "aim_tilt", "wheel", "gobos", "aim_points", "caps", "defaults", "show_home"}
         f = cls(**{k: v for k, v in d.items() if k in allowed})
@@ -945,7 +961,7 @@ class DMXEngine:
             return {str(i): {k: round(float(self.fixtures[i].target[k]), 1) for k in self.LOOK_PARAMS}
                     for i in self.lights(ids)}
 
-    def look_recall(self, values: dict[str, dict[str, float]], fade: float = 1.0) -> None:
+    def look_recall(self, values: dict[str, dict[str, float]], fade: float = 1.0, hold: float = 0.0) -> None:
         with self.lock:
             now = time.monotonic()
             for sid, vals in values.items():
@@ -959,7 +975,7 @@ class DMXEngine:
                 else:
                     self._fades[i] = (now, max(0.05, float(fade)), start, {k: float(v) for k, v in vals.items() if k in f.target})
                 for grp in ("move", "dim", "color", "strobe", "beam"):
-                    self._hold[(i, grp)] = now + max(0.3, fade) + 0.3
+                    self._hold[(i, grp)] = now + max(0.3, fade) + 0.3 + max(0.0, float(hold))
 
     def _run_fades(self) -> None:
         now = time.monotonic()
@@ -1067,6 +1083,9 @@ class DMXEngine:
                         "tilt_deg", "invert_pan", "invert_tilt", "beam_deg", "flip_x", "flip_y", "enabled"):
                 if key in kw and kw[key] is not None:
                     setattr(f, key, type(getattr(f, key))(kw[key]))
+            if "laser_mode" in kw:
+                v = kw["laser_mode"]
+                f.laser_mode = None if v is None or v == "" else int(_clamp(int(v), 0, 255))
             if kw.get("address"):
                 f.address = int(_clamp(int(kw["address"]), 1, 512))
             if kw.get("pos"):
@@ -1084,6 +1103,25 @@ class DMXEngine:
                 if isinstance(ch, str):
                     ch = [c.strip().lower() for c in ch.split(",") if c.strip()]
                 f.channels = ch or None
+
+    PROFILE_KEYS = ("model", "type", "library_key", "channels", "pan_16bit", "tilt_16bit", "has_rgb", "pan_deg",
+                    "tilt_deg", "beam_deg", "shutter_open", "strobe_min", "strobe_max", "wheel", "gobos", "caps",
+                    "defaults", "laser_mode")
+
+    def replace_profile(self, fid: int, spec: dict[str, Any]) -> Fixture:
+        """Another model for this lamp ("Zmień model"): the channels and everything the profile says change,
+        the id, name, place, address and calibration stay - so scenes and the show keep working."""
+        with self.lock:
+            f = self.fixtures[fid]
+            fresh = Fixture(id=f.id, name=f.name)
+            for k in self.PROFILE_KEYS:
+                v = spec.get(k, getattr(fresh, k))
+                setattr(f, k, list(v) if isinstance(v, list) else v)
+            f.overrides.clear()
+            f.target.update({k: 0.0 for k in ("speed", "spin", "beam", "laser", "strip", "strip_speed", "macro",
+                                              "aux1", "aux2", "cwheel", "gobo")})
+            f.snap()
+            return f
 
     def remove_fixture(self, fid: int) -> None:
         with self.lock:
@@ -1142,11 +1180,30 @@ class DMXEngine:
             return {i: self.fixtures[i].target[param] for i in self.resolve(ids)}
 
     def aim(self, ids: Ids, point: list[float]) -> None:
-        """Aim fixtures at a world point [x, y, z] (metres)."""
+        """Aim fixtures at a world point [x, y, z] (metres) - with the corrections fixed by hand."""
         with self.lock:
             self.last_target = [float(v) for v in point]
             for i in self.resolve(ids):
-                self.fixtures[i].aim(point)
+                f = self.fixtures[i]
+                f.aim(point)
+                fix = (f.aim_points or {}).get("floor")
+                if fix:
+                    dp, dt = floor_correction(fix, float(point[0]), float(point[2]))
+                    f.target["pan"] = _clamp(f.target["pan"] + dp, 0, 65535)
+                    f.target["tilt"] = _clamp(f.target["tilt"] + dt, 0, 65535)
+
+    def aim_fix(self, fid: int, point: list[float]) -> int:
+        """The beam of this lamp is exactly on the floor spot now (moved there with the arrows):
+        remember how far it is from where the 3-D model alone would aim."""
+        with self.lock:
+            f = self.fixtures[fid]
+            x, z = float(point[0]), float(point[2])
+            pan, tilt = f.target["pan"], f.target["tilt"]
+            ik_pan, ik_tilt = stage_mod.ik(f, point, pan, tilt)
+            pts = [p for p in (f.aim_points or {}).get("floor", []) if (p[0] - x) ** 2 + (p[1] - z) ** 2 > 0.09]
+            pts.append([round(x, 3), round(z, 3), round(pan - ik_pan, 1), round(tilt - ik_tilt, 1)])
+            f.aim_points = {**(f.aim_points or {}), "floor": pts[-12:]}
+            return len(pts)
 
     # ---- live control beats effects ------------------------------------------------
     def hold(self, ids: Ids, group: str, seconds: float = 0.7) -> None:
@@ -1157,6 +1214,18 @@ class DMXEngine:
 
     def is_held(self, fid: int, group: str) -> bool:
         return self._hold.get((fid, group), 0.0) > time.monotonic()
+
+    def held_long(self, margin: float = 5.0) -> list[int]:
+        """Lamps kept by hand (a solo spot, a scene on top of the show) - not a short fader touch."""
+        until = time.monotonic() + margin
+        return sorted({i for (i, _g), t in self._hold.items() if t > until and i in self.fixtures})
+
+    def release(self, ids: Ids = "all", groups: Any = None) -> None:
+        """Hand the lamps (or only some of their groups, e.g. just the colour) back to the show / the effects."""
+        with self.lock:
+            for i in self.resolve(ids):
+                for grp in (groups or ("move", "dim", "color", "strobe", "beam")):
+                    self._hold.pop((i, grp), None)
 
     def set_position_norm(self, ids: Ids, x: float, y: float, height: float = 0.0) -> None:
         """Point the light where a normalised camera-image position says.
@@ -1400,7 +1469,7 @@ class DMXEngine:
                 "target": self.last_target,
                 "active_id": self.active_id,
                 "blackout": self.blackout,
-                "lasers_enabled": self.lasers_enabled,
+                "lasers_enabled": self.lasers_enabled, "held": self.held_long(),
                 "aim_mode": self.aim_mode, "aim_span": self.aim_span, "aim_box": self.aim_box,
                 "selection": [i for i in self.selection if i in self.fixtures],
                 "motor_speed": self.motor_speed, "value_smoothing": round(self.value_smoothing, 3),

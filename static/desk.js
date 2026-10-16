@@ -235,7 +235,7 @@
     if (!st.fixtures.length) {
       box.innerHTML = `<div class="desk-empty">${ic('mixer')}<b>${esc(t('dk.empty'))}</b><p>${esc(t('dk.emptyS'))}</p>
         <button class="btn primary" id="desk-add">${ic('plus')}<span>${esc(t('dk.add'))}</span></button></div>`;
-      $('#desk-add').onclick = () => { PH.setTab('setup'); if (PH.setupGo) PH.setupGo('lamps'); };
+      $('#desk-add').onclick = () => { if (PH.openRig) PH.openRig('type'); else { PH.setTab('setup'); if (PH.setupGo) PH.setupGo('lamps'); } };
       return;
     }
     const list = DK.mode === 'all' ? st.fixtures : st.fixtures.filter((f) => String(f.id) === DK.mode);

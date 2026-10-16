@@ -13,12 +13,12 @@
 
   PH.addI18n({
     pl: {
-      'st.lamps.n': 'Moje lampy', 'st.dmx.n': 'Interfejs DMX',
+      'st.lamps.n': 'Parametry lamp', 'st.dmx.n': 'Interfejs DMX',
       'sm2.more': 'Pokaż wszystkie ustawienia', 'sm2.less': 'Tylko najważniejsze', 'sm2.mode': 'Tryb prosty', 'sm2.modeS': 'chowa rzadko używane opcje — nic nie jest usuwane',
       'st.home.n': 'Start', 'st.home.s': 'najważniejsze w jednym miejscu', 'st.home.t': 'Ustawienia', 'st.home.d': 'Wybierz, co chcesz zrobić. Wszystkie pozostałe opcje są w menu po lewej.',
       'st.library.n': 'Biblioteka urządzeń', 'st.library.s': 'znajdź model lampy', 'st.library.t': 'Biblioteka urządzeń', 'st.library.d': 'Wpisz nazwę lampy — Lumo przeszuka moje profile, bibliotekę Lumo, Open Fixture Library, GDTF i QLC+.',
       'st.dmxcal.n': 'Konfiguracja / Kalibracja', 'st.dmxcal.s': 'nieznana lampa krok po kroku', 'st.dmxcal.t': 'Konfiguracja / Kalibracja DMX', 'st.dmxcal.d': 'Lampa bez nazwy albo z AliExpress? Sprawdzimy kanały jeden po drugim i zapiszemy ją jako Twoje urządzenie.',
-      'hm.dmx': 'Interfejs DMX', 'hm.lamps': 'Moje lampy', 'hm.lib': 'Biblioteka urządzeń', 'hm.cal': 'Konfiguracja / Kalibracja', 'hm.lang': 'Język', 'hm.diag': 'Diagnostyka',
+      'hm.dmx': 'Interfejs DMX', 'hm.lamps': 'Parametry lamp (zaawansowane)', 'hm.lib': 'Biblioteka urządzeń', 'hm.cal': 'Konfiguracja / Kalibracja', 'hm.lang': 'Język', 'hm.diag': 'Diagnostyka',
       'hm.dmxOk': 'Połączony: {s}', 'hm.dmxBad': 'Nie działa — kliknij, żeby naprawić', 'hm.lampsN': '{n} urządzeń', 'hm.lamps0': 'Brak — dodaj pierwszą lampę', 'hm.libN': '{n} profili, działa offline',
       'hm.libBuild': 'Buduję indeks…', 'hm.calS': 'nieznana lampa, kanał po kanale', 'hm.diagS': 'co działa, a co nie', 'hm.wiz': 'Konfigurator jednym kliknięciem', 'hm.conflict': 'Konflikt adresów!',
       'lb.find': 'Znajdź model lampy', 'lb.ph': 'np. Mini Gobo Moving Head, LED Spot 30W, MH-3…', 'lb.man': 'Producent', 'lb.ch': 'Kanały', 'lb.cat': 'Rodzaj', 'lb.any': 'wszystkie',
@@ -66,12 +66,12 @@
       'toast.libAdded': 'Dodano {name} @ DMX {a} ({n} kan.)', 'toast.freeAddr': '{name} → adres {a}', 'toast.noFree': 'Brak wolnego miejsca w uniwersum',
     },
     it: {
-      'st.lamps.n': 'Le mie luci', 'st.dmx.n': 'Interfaccia DMX',
+      'st.lamps.n': 'Parametri luci', 'st.dmx.n': 'Interfaccia DMX',
       'sm2.more': 'Mostra tutte le impostazioni', 'sm2.less': 'Solo l’essenziale', 'sm2.mode': 'Modalità semplice', 'sm2.modeS': 'nasconde le opzioni usate di rado — nulla viene eliminato',
       'st.home.n': 'Inizio', 'st.home.s': 'l’essenziale in un posto', 'st.home.t': 'Impostazioni', 'st.home.d': 'Scegli cosa vuoi fare. Tutte le altre opzioni sono nel menu a sinistra.',
       'st.library.n': 'Libreria dispositivi', 'st.library.s': 'trova il modello', 'st.library.t': 'Libreria dispositivi', 'st.library.d': 'Scrivi il nome della luce — Lumo cerca nei miei profili, nella libreria Lumo, Open Fixture Library, GDTF e QLC+.',
       'st.dmxcal.n': 'Configurazione / Calibrazione', 'st.dmxcal.s': 'luce sconosciuta passo passo', 'st.dmxcal.t': 'Configurazione / Calibrazione DMX', 'st.dmxcal.d': 'Luce senza nome o da AliExpress? Controlliamo i canali uno per uno e la salviamo come tuo dispositivo.',
-      'hm.dmx': 'Interfaccia DMX', 'hm.lamps': 'Le mie luci', 'hm.lib': 'Libreria dispositivi', 'hm.cal': 'Configurazione / Calibrazione', 'hm.lang': 'Lingua', 'hm.diag': 'Diagnostica',
+      'hm.dmx': 'Interfaccia DMX', 'hm.lamps': 'Parametri luci (avanzate)', 'hm.lib': 'Libreria dispositivi', 'hm.cal': 'Configurazione / Calibrazione', 'hm.lang': 'Lingua', 'hm.diag': 'Diagnostica',
       'hm.dmxOk': 'Collegato: {s}', 'hm.dmxBad': 'Non funziona — clicca per riparare', 'hm.lampsN': '{n} dispositivi', 'hm.lamps0': 'Nessuno — aggiungi la prima luce', 'hm.libN': '{n} profili, funziona offline',
       'hm.libBuild': 'Creo l’indice…', 'hm.calS': 'luce sconosciuta, canale per canale', 'hm.diagS': 'cosa funziona e cosa no', 'hm.wiz': 'Configuratore con un clic', 'hm.conflict': 'Conflitto di indirizzi!',
       'lb.find': 'Trova modello luce', 'lb.ph': 'es. Mini Gobo Moving Head, LED Spot 30W, MH-3…', 'lb.man': 'Produttore', 'lb.ch': 'Canali', 'lb.cat': 'Tipo', 'lb.any': 'tutti',
@@ -154,12 +154,14 @@
     if (!force && box.dataset.sig === sig) return;
     box.dataset.sig = sig;
     const tile = (id, icon, title, sub, cls = '') => `<button class="hm-tile ${cls}" data-go="${id}"><span class="hm-ic">${ic(icon)}</span><b>${esc(title)}</b><small>${esc(sub)}</small></button>`;
-    box.innerHTML = `<button class="hm-hero" data-quickcal><span class="hm-ic">${ic('target')}</span>
+    box.innerHTML = `<button class="hm-hero rig" data-rig><span class="hm-ic">${ic('lamp')}</span>
+        <span><b>${esc(t('rg.title'))}</b><small>${esc(t('rg.sub'))}</small></span>${ic('chevron')}</button>
+      <button class="hm-hero" data-quickcal><span class="hm-ic">${ic('target')}</span>
         <span><b>${esc(t('hm.quickcal'))}</b><small>${esc(t('hm.quickcalS'))}</small></span>${ic('chevron')}</button>
       <div class="hm-grid">
       ${tile('dmx', 'plug', t('hm.dmx'), d.ok && d.config.backend !== 'sim' ? t('hm.dmxOk', { s: d.label || d.status }) : t('hm.dmxBad'), d.ok ? 'ok' : 'bad')}
       ${tile('lamps', 'lamp', t('hm.lamps'), conf ? t('hm.conflict') : n ? t('hm.lampsN', { n }) : t('hm.lamps0'), conf ? 'bad' : '')}
-      ${tile('library', 'layers', t('hm.lib'), L.st && L.st.ready ? t('hm.libN', { n: libN }) : t('hm.libBuild'))}
+      ${PH.simple ? '' : tile('library', 'layers', t('hm.lib'), L.st && L.st.ready ? t('hm.libN', { n: libN }) : t('hm.libBuild'))}
       ${tile('dmxcal', 'channels', t('hm.cal'), t('hm.calS'), 'accent')}
       <div class="hm-tile lang-tile"><span class="hm-ic">${ic('help')}</span><b>${esc(t('hm.lang'))}</b>
         <div class="seg"><button data-l="pl" class="${PH.lang === 'pl' ? 'on' : ''}">Polski</button><button data-l="it" class="${PH.lang === 'it' ? 'on' : ''}">Italiano</button></div></div>
@@ -170,6 +172,7 @@
     $('#hm-simple', box).onchange = (e) => PH.setSimple(e.target.checked);
     for (const b of $$('[data-go]', box)) b.onclick = () => PH.setupGo(b.dataset.go);
     $('[data-quickcal]', box).onclick = () => PH.openLightCal && PH.openLightCal();
+    $('[data-rig]', box).onclick = () => PH.openRig && PH.openRig();
     for (const b of $$('[data-l]', box)) b.onclick = () => { const x = $(`#lang button[data-lang="${b.dataset.l}"]`); if (x) x.click(); paneHome(S.st, true); };
   }
 

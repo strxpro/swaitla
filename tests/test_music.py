@@ -62,6 +62,41 @@ class TestMusic(unittest.TestCase):
         e._render()
         self.assertEqual(e.universe[9], 0)                 # the safety gate still wins
 
+    def test_lasers_in_a_loud_chorus_at_party_tempo(self):
+        e, lamp, laser, fx = rig()
+        e.lasers_enabled = True
+        fx.set_autopilot(on=True, mood="ai")
+        fx.director.configure(flavor="club")
+        with mock.patch.object(fx.director, "energy", return_value=0.85):
+            fx.section = {"name": "verse", "energy": 0.6, "since": 0.0}
+            fx.beat(0.6, False, 124)                       # 124 BPM, a normal beat in the verse: no lasers
+            self.assertNotIn("ap-laser", fx.effects)
+            fx.section = {"name": "chorus", "energy": 0.9, "since": 0.0}
+            fx.director.phrase(force=True)
+            fx.beat(0.6, False, 124)                       # the loud chorus: lasers pulse
+            self.assertIn("ap-laser", fx.effects)
+
+    def test_effect_lights_turn_with_the_show(self):
+        e, lamp, laser, fx = rig()
+        ball = e.add_fixture(name="Kula", address=30, type="derby",
+                             channels=["dimmer", "red", "green", "blue", "spin", "beam", "aux1", "laser_r"])
+        self.assertEqual(fx.motor_ids(), [ball.id])                    # the moving head and the laser have no motors
+        fx.set_autopilot(on=True, mood="ai")
+        fx.director.configure(flavor="club")
+        fx.director.phrase(force=True, energy=0.9)
+        self.assertIn("ap-motor", fx.effects)
+        with mock.patch.object(fx.clock, "alive", lambda now=None: True),                 mock.patch.object(fx.clock, "pos", lambda now=None: 0.05):   # on the bar line: the extra strobe flashes
+            fx.apply()
+        self.assertGreater(ball.target["spin"], 20)
+        self.assertEqual(ball.target["aux1"], 255)
+        with mock.patch.object(fx.clock, "alive", lambda now=None: True),                 mock.patch.object(fx.clock, "pos", lambda now=None: 9.5):    # 8 beats later: the other direction
+            fx.apply()
+        self.assertGreater(ball.target["spin"], 128)
+        self.assertEqual(ball.target["aux1"], 0)
+        fx.set_autopilot(on=False)                                      # show off: everything stops
+        self.assertNotIn("ap-motor", fx.effects)
+        self.assertEqual((ball.target["spin"], ball.target["aux1"]), (0.0, 0.0))
+
     def test_blackout_darkens_everything(self):
         e, lamp, laser, fx = rig()
         par = e.add_fixture(name="PAR", address=20, type="par", channels=["red", "green", "blue", "macro"])

@@ -24,6 +24,7 @@ Thumbs.db
 
 # Lumo: local-only files
 audd_key.txt
+ai_key.txt
 config.previous.json
 *.tmp
 shows/audio/

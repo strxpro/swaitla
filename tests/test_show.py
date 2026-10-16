@@ -172,6 +172,121 @@ class TestMorph(unittest.TestCase):
         self.assertAlmostEqual(lamps[0].target["tilt"], 40000.0, delta=1)
 
 
+class TestSoloSpot(unittest.TestCase):
+    def test_held_lamps_stay_while_the_show_plays_on_the_rest(self):
+        e, lamps, fx = rig(2)
+        solo, other = lamps
+        fx.set_autopilot(on=True, mood="ai")
+        e.set_params(solo.id, {"red": 255, "green": 40, "blue": 160, "pan": 12000.0})
+        for grp in ("move", "color"):
+            e.hold(solo.id, grp, 3600)
+        self.assertEqual(e.held_long(), [solo.id])
+        for _ in range(20):
+            fx.apply()
+        self.assertEqual((solo.target["red"], solo.target["blue"], solo.target["pan"]), (255, 160, 12000.0))
+        e.release(solo.id)
+        self.assertEqual(e.held_long(), [])
+        fx.director.phrase(force=True)
+        fx.apply()
+        self.assertNotEqual((solo.target["red"], solo.target["green"], solo.target["blue"]), (255, 40, 160))
+
+    def test_solo_movement_circles_around_the_person_while_the_show_runs(self):
+        e, lamps, fx = rig(2)
+        solo, other = lamps
+        fx.set_autopilot(on=True, mood="ai")
+        solo.target.update(pan=20000.0, tilt=30000.0)
+        e.hold(solo.id, "move", 3600)
+        fx.start("circle", {"speed": 0.5, "size": 6, "solo": True}, [solo.id], None, f"solo-move-{solo.id}")
+        self.assertIn("ap-move", fx.effects)                      # the show keeps its movement for the others
+        pans = set()
+        t0 = fx.effects[f"solo-move-{solo.id}"].t0
+        for k in range(8):
+            with mock.patch("effects.time.monotonic", lambda: t0 + k * 0.25):
+                fx.apply()
+            pans.add(round(solo.target["pan"]))
+            self.assertLess(abs(solo.target["pan"] - 20000.0), 6 / solo.pan_deg * 65535 + 1)   # stays around him
+        self.assertGreater(len(pans), 3)
+        fx.stop_solo([solo.id])
+        self.assertNotIn(f"solo-move-{solo.id}", fx.effects)
+        self.assertIn("ap-move", fx.effects)
+
+    def test_scene_on_top_of_the_show(self):
+        e, lamps, fx = rig(2)
+        e.set_params("all", {"red": 10, "green": 20, "blue": 30, "dimmer": 99})
+        look = e.look_capture([lamps[0].id])
+        e.set_params("all", {"red": 0, "green": 0, "blue": 0})
+        e.look_recall(look, 0.0, hold=600)
+        self.assertEqual(e.held_long(), [lamps[0].id])
+        self.assertEqual(lamps[0].target["red"], 10.0)
+        self.assertEqual(lamps[1].target["red"], 0.0)
+
+
+class TestPickedEffects(unittest.TestCase):
+    """Pokaz → Efekty: an effect on chosen lamps plays on top of the show; scenes keep the effects."""
+
+    def test_picked_effect_takes_only_its_layer_from_the_show(self):
+        e, lamps, fx = rig(3)
+        a, b, c = lamps
+        fx.set_autopilot(on=True, mood="ai")
+        eid = fx.start_mine("rainbow", {"beats": 8}, [a.id, b.id])
+        self.assertTrue(eid.startswith("my-"))
+        self.assertTrue(e.is_held(a.id, "color") and not e.is_held(a.id, "move"))   # the show keeps moving it
+        self.assertFalse(e.is_held(c.id, "color"))                                  # c stays in the show
+        self.assertIn("ap-color", fx.effects)
+        eid2 = fx.start_mine("static_color", {"color_a": [255, 0, 120]}, [a.id, b.id])  # same layer, same lamps
+        self.assertNotIn(eid, fx.effects)
+        self.assertIn(eid2, fx.effects)
+        fx.apply()
+        self.assertEqual((a.target["red"], a.target["green"], a.target["blue"]), (255, 0, 120))
+        fx.start_mine("circle", {"size": 20}, [a.id])                              # another layer: both play
+        self.assertEqual(len(fx.mine()), 2)
+        fx.stop_mine(eid2)
+        self.assertFalse(e.is_held(a.id, "color"))                                  # colour back to the show
+        self.assertTrue(e.is_held(a.id, "move"))
+        fx.stop_mine()
+        self.assertEqual(fx.mine(), [])
+        self.assertFalse(e.is_held(a.id, "move"))
+
+    def test_scene_recipe_restarts_the_effects(self):
+        e, lamps, fx = rig(2)
+        fx.start_mine("wave", {"beats": 2}, [lamps[0].id, lamps[1].id])
+        fx.start_mine("static_color", {"color_a": [0, 0, 255]}, [lamps[1].id])
+        specs = fx.mine_specs()
+        self.assertEqual(sorted(s["kind"] for s in specs), ["static_color", "wave"])
+        self.assertNotIn("solo", specs[0]["params"])
+        only_first = fx.mine_specs([lamps[0].id])                                    # a scene of one lamp
+        self.assertEqual([(x["kind"], x["ids"]) for x in only_first], [("wave", [lamps[0].id])])
+        fx.stop_mine()
+        for sp in specs:                                                              # what recall_look does
+            fx.start_mine(sp["kind"], sp["params"], sp["ids"])
+        self.assertEqual(sorted(x.kind for x in fx.mine()), ["static_color", "wave"])
+
+
+class TestAimFix(unittest.TestCase):
+    """Reflektor ręczny → Popraw celowanie: arrows put the beam on the spot, the correction is kept."""
+
+    def test_correction_is_used_near_the_spot_and_softly_far_away(self):
+        e = dc.DMXEngine()
+        f = e.add_fixture(name="Head", channels=["pan", "pan_fine", "tilt", "tilt_fine", "dimmer"], pos=[2.0, 3.0, -2.0], mount="hang")
+        spot = [0.0, 0.0, 1.0]
+        e.aim(f.id, spot)
+        model_pan, model_tilt = f.target["pan"], f.target["tilt"]
+        e.aim(f.id, [0.3, 0.0, 1.0])                       # the arrows: the beam needed 30 cm more to the right
+        real_pan, real_tilt = f.target["pan"], f.target["tilt"]
+        self.assertEqual(e.aim_fix(f.id, spot), 1)
+        e.aim(f.id, spot)                                  # next time the same spot is aimed: the corrected beam
+        self.assertAlmostEqual(f.target["pan"], real_pan, delta=2)
+        self.assertAlmostEqual(f.target["tilt"], real_tilt, delta=2)
+        self.assertNotAlmostEqual(f.target["pan"], model_pan, delta=20)
+        self.assertEqual(dc.Fixture.from_config(f.to_config()).aim_points["floor"][0][:2], [0.0, 1.0])   # saved
+        self.assertNotIn("floor", f.to_state()["aim_err"])
+        e.aim_fix(f.id, spot)                              # the same spot again: replaced, not added
+        self.assertEqual(len(f.aim_points["floor"]), 1)
+        e.aim_point_clear(f.id, "floor")
+        e.aim(f.id, spot)
+        self.assertAlmostEqual(f.target["pan"], model_pan, delta=2)
+
+
 class TestDirector(unittest.TestCase):
     def run_beats(self, fx, ck, beats, bpm=128):
         period = 60.0 / bpm

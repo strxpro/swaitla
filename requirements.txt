@@ -12,3 +12,6 @@ ftd2xx>=1.3                   # FTDI Open DMX through the native D2XX driver (pr
 pyusb>=1.2                    # uDMX (Anyma) USB-DMX cable
 libusb-package>=1.0           # bundled libusb-1.0 DLL for pyusb
 # stupidArtnet>=1.4           # only if ARTNET_USE_STUPIDARTNET = True (built-in Art-Net needs nothing)
+
+# --- optional: Pomocnik AI with a Claude key ------------------------------------
+# anthropic>=1.15          # Lumo installs it by itself when a Claude key is pasted (a Gemini key needs nothing)

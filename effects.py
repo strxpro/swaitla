@@ -83,6 +83,7 @@ CATEGORY = {
     "gobo": "beam", "gobo_shake": "beam", "gobo_spin": "beam",
     "beat": "dim",                     # flash on every beat (BPM), dark in between
     "laser_hit": "laser", "laser_on": "laser",
+    "motors": "motor",                 # effect lights: rotation, lens tilt, extra strobes (derby, ball, bar, spider)
 }
 DEFAULTS: dict[str, dict[str, Any]] = {
     "circle": {"speed": 0.35, "size": 35, "spread": 0.25},
@@ -150,8 +151,9 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "twinkle": {"speed": 3.0, "floor": 0.35, "decay": 0.35},
     "blinder": {"decay": 0.9},
     "glow": {"level": 1.0},
+    "motors": {"energy": 0.5, "beats": 8},
 }
-AP_IDS = ("ap-move", "ap-color", "ap-dim", "ap-hit", "ap-drop", "ap-laser", "ap-beam", "ap-acc")
+AP_IDS = ("ap-move", "ap-color", "ap-dim", "ap-hit", "ap-drop", "ap-laser", "ap-beam", "ap-acc", "ap-motor")
 KIND_TOUCHES = {"strobe": ("strobe",), "blinder": ("dimmer", "red", "green", "blue")}
 SHAPES = ("circle", "figure8", "square", "triangle", "sweep", "tilt_wave")
 FAST_COLOR = {"two_color", "police", "chase"}   # hard colour cuts on the beat: no smoothing lag
@@ -162,7 +164,9 @@ NOIR = [(25, 70, 255), (120, 170, 255), (215, 230, 255)]
 PALETTE = [(255, 40, 40), (255, 140, 0), (255, 230, 0), (40, 255, 90), (0, 200, 255),
            (40, 90, 255), (170, 60, 255), (255, 50, 190), (255, 255, 255)]
 TOUCHES = {"move": ("pan", "tilt"), "color": ("red", "green", "blue", "cwheel"),
-           "dim": ("dimmer",), "strobe": ("strobe",), "beam": ("gobo",), "laser": ("laser",)}
+           "dim": ("dimmer",), "strobe": ("strobe",), "beam": ("gobo",), "laser": ("laser",),
+           "motor": ("spin", "beam", "aux1", "aux2")}
+MOTOR_ROLES = ("spin", "beam", "aux1", "aux2")
 PRESETS_PATH = Path(__file__).resolve().parent / "presets.json"
 FAST_DIM = {"hit", "kicks", "flash", "blink", "pattern", "sparkle", "beat", "blinder", "lightning",
             "riser", "stack", "chase_beat", "stutter", "twinkle"}   # written straight to the output (no smoothing lag)
@@ -403,7 +407,7 @@ class EffectEngine:
             # one effect per layer and fixture: a new movement replaces the old one (or morphs out of it)
             sources = []
             for other in list(self.effects.values()):
-                if other.state.get("_retire"):
+                if other.state.get("_retire") or prm.get("solo") or other.params.get("solo"):
                     continue
                 if other.category == eff.category and other.kind != "flash" and kind != "flash" \
                         and other.touched() == eff.touched() \
@@ -475,6 +479,62 @@ class EffectEngine:
                     self._stop_one(lid)
                 return
             self._stop_one(eid)
+
+    def stop_solo(self, ids: Any = "all", groups: Any = None) -> None:
+        """End the hand-run effects on these lamps (Reflektor ręczny, picked effects) - all, or only some layers."""
+        with self.engine.lock, self.lock:
+            keep = set(self.engine.resolve(ids))
+            for eid, eff in list(self.effects.items()):
+                if eff.params.get("solo") and set(eff.base) & keep and (not groups or self.group_of(eff) in groups):
+                    self._stop_one(eid)
+
+    @staticmethod
+    def group_of(eff: "Effect") -> str:
+        """The hold group an effect plays in (what a hand / a scene takes away from the show)."""
+        return "strobe" if eff.kind == "strobe" else eff.category
+
+    # ---- effects picked by hand (Pokaz → Efekty): on chosen lamps, on top of the show ----------------
+    def mine(self) -> list["Effect"]:
+        return [e for e in self.effects.values() if e.id.startswith("my-")]
+
+    def start_mine(self, kind: str, params: dict | None, ids: list[int], eid: str | None = None,
+                   hold: float = 86400.0) -> str:
+        """The chosen lamps leave the show for this layer only (colour, movement, brightness …) and play it."""
+        if kind not in CATEGORY:
+            raise ValueError(f"nieznany efekt {kind!r}")
+        with self.engine.lock, self.lock:
+            ids = [int(i) for i in ids if int(i) in self.engine.fixtures]
+            grp = "strobe" if kind == "strobe" else CATEGORY[kind]
+            for e in self.mine():                        # the same layer on the same lamps: the new one replaces it
+                if self.group_of(e) == grp and set(e.base) <= set(ids):
+                    self._stop_one(e.id)
+            if not eid or not str(eid).startswith("my-") or eid in self.effects:
+                self._seq += 1
+                eid = f"my-{self._seq}"
+            if grp in ("move", "color", "dim", "strobe", "beam"):
+                self.engine.hold(ids, grp, hold)
+            clean = {k: v for k, v in (params or {}).items() if k not in ("solo", "morph", "t_offset")}
+            return self.start(kind, {**clean, "solo": True}, ids, None, eid)
+
+    def stop_mine(self, eid: str | None = None) -> None:
+        """One picked effect (or all of them) stops; its lamps give that layer back to the show."""
+        with self.engine.lock, self.lock:
+            for e in self.mine():
+                if eid in (None, "all") or e.id == eid:
+                    ids, grp = list(e.base), self.group_of(e)
+                    self._stop_one(e.id)
+                    self.engine.release(ids, [grp])
+
+    def mine_specs(self, ids: Any = None) -> list[dict[str, Any]]:
+        """The picked effects as a recipe (saved with a scene)."""
+        keep = set(self.engine.resolve(ids)) if ids not in (None, "all") else None
+        out = []
+        for e in self.mine():
+            lamps = sorted(e.base) if keep is None else sorted(set(e.base) & keep)
+            if lamps:
+                prm = {k: v for k, v in e.params.items() if k not in ("solo", "morph", "t_offset") and not k.startswith("_")}
+                out.append({"kind": e.kind, "params": prm, "ids": lamps})
+        return out
 
     def stop_all(self) -> None:
         with self.engine.lock, self.lock:
@@ -550,6 +610,17 @@ class EffectEngine:
             self._ap_beat(strength, drop, in_bar)
 
     # ---- tick (called by the DMX engine under its lock, 40 Hz) -----------------------
+    def motor_ids(self) -> list[int]:
+        """Lights with motors / extra strobes the show can play (rotating derby, ball, bee-eye bar, spider)."""
+        return [i for i, f in self.engine.fixtures.items()
+                if f.enabled and f.type not in ("laser", "smoke") and any(r in MOTOR_ROLES for r in f.layout())]
+
+    def still_motors(self) -> None:
+        """Show off: the rotations stop and the extra strobes go dark."""
+        for i in self.motor_ids():
+            f = self.engine.fixtures[i]
+            f.target.update(spin=0.0, aux1=0.0, aux2=0.0)
+
     def laser_ids(self) -> list[int]:
         return [i for i, f in self.engine.fixtures.items() if f.enabled and (f.type == "laser" or any(r.startswith("laser") for r in f.layout()))]
 
@@ -655,7 +726,7 @@ class EffectEngine:
 
     def _render(self, eff: Effect, fid: int, n: int, count: int, t: float) -> None:
         group = "strobe" if eff.kind == "strobe" else eff.category
-        if self.engine.is_held(fid, group):          # a gesture / fader is driving this right now
+        if self.engine.is_held(fid, group) and not eff.params.get("solo"):   # a hand / fader drives this now
             return
         f = self.engine.fixtures[fid]
         env = self._envelope(eff, t)
@@ -875,6 +946,15 @@ class EffectEngine:
                 tgt["gobo"] = 128 + min(127.0, max(0.0, float(p["speed"])))
             else:
                 tgt["gobo"] = float(p.get("value", 0))
+        elif eff.category == "motor":
+            # cheap effect lights: rotation 0-127 one way (slow → fast), 128-255 the other way
+            energy = min(1.0, max(0.0, float(p.get("energy", 0.5))))
+            turn = 25.0 + 80.0 * energy
+            flip = bool(p.get("flip")) and self._bpos is not None and int(self._bpos // 8) % 2 == 1
+            tgt["spin"] = 128.0 + turn if flip else turn
+            tgt["beam"] = 128.0 + 100.0 * math.sin(2 * math.pi * cyc + n * 0.8)     # lenses sway with the music
+            hit = bool(p.get("aux")) and self._bpos is not None and (self._bpos % 4.0) < 0.12
+            tgt["aux1"] = tgt["aux2"] = 255.0 if hit else 0.0
         else:                                                   # dimmer effects
             lo, hi = float(p.get("min", 0.0)), float(p.get("max", 1.0))
             floor = float(p.get("floor", 0.0))
@@ -1022,6 +1102,7 @@ class EffectEngine:
             if not self.autopilot["on"]:
                 for eid in AP_IDS:
                     self.stop(eid)
+                self.still_motors()
             elif changed or on:
                 self._ap_beats = 0
                 self._ap_phrase()
@@ -1047,6 +1128,8 @@ class EffectEngine:
             return
         for eid in ("ap-beam", "ap-acc"):                 # only the director plays these
             self.stop(eid)
+        if self.motor_ids():                              # effect lights turn with the music too
+            self.start("motors", {"energy": 0.25 if self._cur_mood() == "calm" else 0.65, "beats": 8}, "all", None, "ap-motor")
         mood_name = self._cur_mood()
         mood = MOODS[mood_name]
         pal = [[255, 255, 255]] if self.autopilot.get("white") else (self.palette or [list(c) for c in PALETTE])

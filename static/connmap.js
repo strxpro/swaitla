@@ -69,7 +69,7 @@
         b.classList.remove('ping'); void b.offsetWidth; b.classList.add('ping');
       };
       for (const b of $$('[data-go]', box)) b.onclick = () => PH.setupGo(b.dataset.go);
-      for (const b of $$('[data-add]', box)) b.onclick = () => PH.setupGo('library');
+      for (const b of $$('[data-add]', box)) b.onclick = () => (PH.openRig ? PH.openRig('type') : PH.setupGo('library'));   // the simple "Dodaj światło" wizard
       for (const b of $$('[data-group]', box)) b.onclick = () => {
         send({ type: 'scope', value: b.dataset.group });
         send({ type: 'mode', mode: 'gesture' });

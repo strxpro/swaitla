@@ -47,6 +47,7 @@ import qlcimport
 import dmxdoctor
 from mecal import MeCalibrator
 from musicai import MusicAI
+from aihelp import AIHelper, rig_context
 from fixturelib import FixtureLibraryService
 from fixturelib import manual as fx_manual, rdm as fx_rdm
 from collections import deque
@@ -57,6 +58,7 @@ BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 CONFIG_PATH = BASE_DIR / "config.json"
 AUDD_KEY_PATH = BASE_DIR / "audd_key.txt"          # song-title key: local only, never in config.json / git
+AI_KEY_PATH = BASE_DIR / "ai_key.txt"              # Pomocnik AI key (Gemini / Claude): local only, never in git
 try:
     APP_VERSION = (BASE_DIR / "VERSION").read_text(encoding="utf-8").strip()
 except OSError:
@@ -128,6 +130,7 @@ class Rig:
             pass
         self.musicai.configure(**ai_cfg)
         self.effects.director.ai = self.musicai.state
+        self.aihelp = AIHelper(AI_KEY_PATH)                     # optional chat in the "Pomoc" panel
         vision_mod.HAND_FILTER.update(cfg.get("hand_filter") or {})
         self.bindings = cfg.get("bindings") or []              # keyboard / MIDI buttons → actions
         self.notices: deque = deque(maxlen=40)                  # (seq, toast) sent to every browser
@@ -158,12 +161,20 @@ class Rig:
         if show.get("sync_ms") is not None:
             self.effects.clock.offset = max(-0.2, min(0.3, float(show["sync_ms"]) / 1000.0))
 
-    def recall_look(self, lid: Any, fade: float | None = None) -> bool:
+    def recall_look(self, lid: Any, fade: float | None = None, keep_show: bool = False, hold: float = 0.0) -> bool:
+        """keep_show: the scene sits on top of a running show (its lamps are held, the rest keeps playing)."""
         lk = next((x for x in self.looks if x["id"] == lid), None)
         if lk is None:
             return False
-        self.effects.stop_all()
-        self.engine.look_recall(lk["values"], lk.get("fade", 1.0) if fade is None else fade)
+        if not keep_show:
+            self.effects.stop_all()
+        self.engine.look_recall(lk["values"], lk.get("fade", 1.0) if fade is None else fade, hold)
+        for spec in lk.get("effects") or []:                    # a scene with effects: they start again
+            try:
+                self.effects.start_mine(spec["kind"], spec.get("params") or {}, spec.get("ids") or [],
+                                        hold=max(hold, 1.0) if keep_show else 86400.0)
+            except (ValueError, KeyError) as e:
+                log.warning("scene %s: effect skipped (%s)", lk.get("name"), e)
         return True
 
     def _camera_plugged(self) -> None:
@@ -335,6 +346,12 @@ async def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html", headers={"Cache-Control": "no-store"})
 
 
+@app.get("/api/assistant")
+async def api_assistant() -> dict[str, Any]:
+    """Is the AI chat in the helper on (a key saved), which kind."""
+    return rig.aihelp.state()
+
+
 @app.get("/api/version")
 async def api_version() -> dict[str, Any]:
     """run.bat asks this: an older Lumo still running after an update is restarted."""
@@ -458,7 +475,7 @@ async def api_cameras() -> list[dict[str, Any]]:
 # =============================================================================
 FIXTURE_KEYS = ("name", "address", "pan_16bit", "tilt_16bit", "has_rgb", "pos", "mount", "yaw",
                 "pan_deg", "tilt_deg", "invert_pan", "invert_tilt", "beam_deg",
-                "shutter_open", "strobe_min", "strobe_max", "model", "type", "library_key",
+                "shutter_open", "strobe_min", "strobe_max", "laser_mode", "model", "type", "library_key",
                 "channels", "aim_pan", "aim_tilt", "wheel", "gobos", "caps", "defaults")
 
 LIBRARY_PATH = BASE_DIR / "fixture_library.json"
@@ -493,7 +510,7 @@ AUTOSAVE = {"add_fixture", "duplicate_fixture", "free_address", "update_fixture"
             "stagecam_source", "stagecam_mirror", "stagecam_quad", "stagecam_follow",
             "gesture_save", "autopilot", "palette", "aim_box", "speed_profile", "selection",
             "aim_point", "aim_point_clear", "bindings", "smoke", "look_save", "look_update", "look_delete",
-            "director", "show_start", "sync", "ai_cfg", "show_home"}
+            "director", "show_start", "sync", "ai_cfg", "show_home", "aim_fix", "aim_fix_clear"}
 _save_task: asyncio.Task | None = None
 
 
@@ -517,6 +534,18 @@ def _toast(text: str, level: str = "ok", key: str | None = None, **params: Any) 
     return {"type": "toast", "level": level, "text": text, "key": key, "params": params}
 
 
+BACKGROUND: set[asyncio.Task] = set()
+
+
+async def _answer_later(m: dict[str, Any], outbox: Any) -> None:
+    try:
+        reply = await handle_message(m)
+    except Exception:
+        log.exception("AI helper")
+        reply = {"type": "aihelp", "op": "answer", "id": m.get("id"), "error": "other"}
+    outbox.put_nowait(reply)
+
+
 async def handle_message(m: dict[str, Any]) -> dict[str, Any] | None:
     """Apply one client command. Returns an optional reply for the sender."""
     r, eng = rig, rig.engine
@@ -526,9 +555,10 @@ async def handle_message(m: dict[str, Any]) -> dict[str, Any] | None:
         params = [m.get("param", "")] if t == "set" else list(m.get("values", {})) if t == "set_many" else ["pan"]
         for prm in params:
             grp = ("move" if prm.startswith(("pan", "tilt")) else "dim" if prm == "dimmer" else
-                   "strobe" if prm == "strobe" else "color" if prm in ("red", "green", "blue", "rgb", "cwheel") else None)
+                   "strobe" if prm == "strobe" else "color" if prm in ("red", "green", "blue", "rgb", "cwheel") else
+                   "beam" if prm in ("gobo", "spin") else None)
             if grp:
-                eng.hold(m.get("id"), grp, 1.5)
+                eng.hold(m.get("id"), grp, float(m.get("hold") or 1.5))   # hold: a solo spot stays until "release"
 
     if t == "set":            # {id, param, value}   param: pan|tilt|pan_coarse|pan_fine|…|dimmer|strobe|red|…
         if m.get("param") == "rgb":
@@ -540,8 +570,30 @@ async def handle_message(m: dict[str, Any]) -> dict[str, Any] | None:
         eng.set_params(m.get("id"), {k: float(v) for k, v in m["values"].items()})
     elif t == "position":     # {x, y} normalised camera image → floor point → active fixture
         eng.set_position_norm(m.get("id"), float(m["x"]), float(m["y"]))
-    elif t == "aim":          # {x, y, z} world metres (click on the 3D floor)
-        eng.aim("all" if m.get("all") else m.get("id"), [float(m["x"]), float(m["y"]), float(m["z"])])
+    elif t == "aim":          # {x, y, z, ids?, hold?} world metres (3-D floor click / the plan in Pokaz)
+        ids = m.get("ids") or ("all" if m.get("all") else m.get("id"))
+        eng.aim(ids, [float(m["x"]), float(m["y"]), float(m["z"])])
+        if m.get("hold"):
+            eng.hold(ids, "move", float(m["hold"]))
+    elif t == "release":      # {ids?, groups?} lamps held by hand go back to the show
+        eng.release(m.get("ids") or "all", m.get("groups"))
+        r.effects.stop_solo(m.get("ids") or "all", m.get("groups"))
+    elif t == "my_fx":        # {kind, ids, params?, id?} an effect picked by hand, on chosen lamps, on top of the show
+        ids = [int(i) for i in (m.get("ids") or []) if int(i) in eng.fixtures] or eng.lights("all")
+        try:
+            eid = r.effects.start_mine(str(m.get("kind")), m.get("params") or {}, ids, m.get("id"))
+        except ValueError as e:
+            return _toast(str(e), "err")
+        return {"type": "myfx", "op": "started", "id": eid}
+    elif t == "my_fx_stop":   # {id?} one picked effect (or all of them) stops; the lamps go back to the show
+        r.effects.stop_mine(m.get("id"))
+    elif t == "aim_fix":      # {id, x, y, z} this lamp now hits the spot (after the arrows): remember the correction
+        n = eng.aim_fix(int(m["id"]), [float(m["x"]), float(m["y"]), float(m["z"])])
+        return _toast("", key="toast.aimFix", n=n)
+    elif t == "aim_fix_clear":  # {id}
+        eng.aim_point_clear(int(m["id"]), "floor")
+    elif t == "solo_stop":    # {ids?} only the hand-run movement / gobo stops, the lamps stay held
+        r.effects.stop_solo(m.get("ids") or "all")
     elif t == "stage":        # {width, depth, truss_height, aim_height}
         st = eng.stage
         st.truss_height = float(m.get("truss_height", st.truss_height))
@@ -630,6 +682,56 @@ async def handle_message(m: dict[str, Any]) -> dict[str, Any] | None:
         eng.select(f.id)
         await asyncio.to_thread(r.save)
         return _toast("", key="toast.libAdded", name=f.name, a=f"{f.address:03d}", n=f.footprint)
+    elif t == "ai_key":        # {key, provider?} add a Pomocnik AI key | {remove: i} | {key: ""} remove all; ai_key.txt only
+        try:
+            if m.get("remove") is not None:
+                st = await asyncio.to_thread(r.aihelp.remove_key, int(m["remove"]))
+            elif m.get("key"):
+                st = await asyncio.to_thread(r.aihelp.add_key, str(m["key"]), m.get("provider"))
+            else:
+                st = await asyncio.to_thread(r.aihelp.remove_key, None)
+        except ValueError:
+            return {"type": "aihelp", "op": "error", "error": "bad_key"}
+        return {"type": "aihelp", "op": "key", **st}
+    elif t == "ai_ask":        # {q, history?, id} a question for the helper, with what Lumo knows now
+        snap = eng.snapshot()
+        fx = r.effects.state()
+        ctx = rig_context(snap, fx, fx.get("director") or {}, r.musicai.state(), r.looks)
+        res = await asyncio.to_thread(r.aihelp.ask, str(m.get("q") or ""), list(m.get("history") or []), ctx)
+        return {"type": "aihelp", "op": "answer", "id": m.get("id"), **res}
+    elif t == "rig_add":       # {lib_id?, mode?, channels?, ftype?, name, address?, mount?, pos?, replace?} - one light group
+        if m.get("lib_id"):
+            try:
+                spec = await asyncio.to_thread(fixlib.engine_spec, str(m["lib_id"]), m.get("mode"))
+            except Exception as e:
+                return _toast(str(e), "err")
+        else:
+            roles = [str(c).strip().lower() for c in (m.get("channels") or []) if str(c).strip()] or ["dimmer"]
+            spec = {"channels": roles, "pan_16bit": "pan_fine" in roles, "tilt_16bit": "tilt_fine" in roles,
+                    "has_rgb": any(c in roles for c in ("red", "green", "blue")), "model": ""}
+        if m.get("ftype") in ("moving_head", "par", "bar", "derby", "strobe", "laser", "spider"):
+            spec["type"] = m["ftype"]
+        if m.get("replace") is not None and int(m["replace"]) in eng.fixtures:     # "Zmień model": the same lamp, new profile
+            f = eng.replace_profile(int(m["replace"]), spec)
+            if m.get("address"):
+                eng.update_fixture(f.id, address=int(m["address"]))
+            if m.get("name"):
+                eng.update_fixture(f.id, name=str(m["name"])[:24])
+            eng.select(f.id)
+            await asyncio.to_thread(r.save)
+            return {"type": "rig", "op": "added", "id": f.id, "name": f.name, "address": f.address,
+                    "channels": f.footprint, "replaced": True}
+        n = len(spec["channels"])
+        addr = int(m["address"]) if m.get("address") else (eng.free_address(n) or eng.next_free_address())
+        spec["name"] = str(m.get("name") or spec.get("name") or "Lampa")[:24]
+        if m.get("mount") in ("hang", "floor"):
+            spec["mount"] = m["mount"]
+        if m.get("pos"):
+            spec["pos"] = [float(v) for v in m["pos"][:3]]
+        f = eng.add_fixture(**spec, address=max(1, min(512, addr)), values={"dimmer": 200})
+        eng.select(f.id)
+        await asyncio.to_thread(r.save)
+        return {"type": "rig", "op": "added", "id": f.id, "name": f.name, "address": f.address, "channels": f.footprint}
     elif t == "lib_disambiguate":  # {q, count} - candidate maps + which channels tell them apart
         res = await asyncio.to_thread(fixlib.disambiguate, str(m.get("q", "")), int(m["count"]))
         return {"type": "lib", "op": "disambiguate", **res}
@@ -925,11 +1027,12 @@ async def handle_message(m: dict[str, Any]) -> dict[str, Any] | None:
         import uuid as _uuid
         lk = {"id": _uuid.uuid4().hex[:8], "name": str(m.get("name") or f"Scena {len(r.looks) + 1}")[:24],
               "fade": float(m.get("fade", 1.0)), "color": m.get("color") or "#2f7bff",
-              "values": eng.look_capture(m.get("ids", "all"))}
+              "values": eng.look_capture(m.get("ids", "all")),
+              "effects": r.effects.mine_specs(m.get("ids")) if m.get("with_effects", True) else []}
         r.looks.append(lk)
         return _toast("", key="toast.lookSaved", name=lk["name"])
-    elif t == "look_recall":       # {id, fade?}
-        r.recall_look(m.get("id"), m.get("fade"))
+    elif t == "look_recall":       # {id, fade?, keep_show?, hold?}
+        r.recall_look(m.get("id"), m.get("fade"), bool(m.get("keep_show")), float(m.get("hold") or 0))
     elif t == "look_update":       # {id, name?, fade?, color?, recapture?}
         for lk in r.looks:
             if lk["id"] == m.get("id"):
@@ -938,6 +1041,7 @@ async def handle_message(m: dict[str, Any]) -> dict[str, Any] | None:
                         lk[k] = m[k]
                 if m.get("recapture"):
                     lk["values"] = eng.look_capture("all")
+                    lk["effects"] = r.effects.mine_specs()
     elif t == "look_delete":
         r.looks = [x for x in r.looks if x["id"] != m.get("id")]
     elif t == "fx_speed":          # {value 0..1} global effect tempo (MIDI knob)
@@ -1101,6 +1205,11 @@ async def ws_endpoint(ws: WebSocket) -> None:
                 if msg.get("type") == "video":      # this browser shows / hides the camera image
                     VIDEO_WANTED[id(ws)] = bool(msg.get("value"))
                     rig.vision.want_jpeg = any(VIDEO_WANTED.values())
+                    continue
+                if msg.get("type") == "ai_ask":     # slow (internet): answered later, the lights never wait
+                    later = asyncio.create_task(_answer_later(msg, outbox))
+                    BACKGROUND.add(later)
+                    later.add_done_callback(BACKGROUND.discard)
                     continue
                 reply = await handle_message(msg)
                 if msg.get("type") in AUTOSAVE:

@@ -58,6 +58,10 @@
       'cal.up': 'Czy światło podniosło się W GÓRĘ?', 'cal.upS': 'W stronę publiczności / nad głowy.', 'cal.wrong': 'Nie, w drugą stronę', 'cal.fixed': 'Poprawione — sprawdź jeszcze raz',
       'cal.color': 'Czy kolory zgadzają się z napisem?', 'cal.colorS': 'Lampa zmienia kolor: czerwony → zielony → niebieski.', 'cal.colorNo': 'Kolory się nie zgadzają',
       'cal.colorHint': 'Kanały koloru są w innej kolejności — popraw je w Ustawienia → Moje lampy → Edytuj profil.',
+      'cal.shut': 'Szukam ustawienia, przy którym lampa świeci', 'cal.shutS': 'Tanie głowice często świecą dopiero przy konkretnej wartości „migawki” (shutter). Sprawdzam po kolei — kliknij, gdy tylko lampa zaświeci.',
+      'cal.try': 'Próba {i} z {n}', 'cal.lit': 'Teraz świeci!', 'cal.litOk': 'Zapamiętane — lampa świeci (migawka = {v})',
+      'cal.shutNone': 'Żadne ustawienie migawki nie zapaliło lampy. Najczęściej: zły adres na wyświetlaczu lampy, lampa w trybie Sound/Auto zamiast DMX albo inny układ kanałów niż w profilu.',
+      'cal.channels': 'Rozpoznaj kanały krok po kroku', 'cal.again': 'Sprawdź jeszcze raz',
       'cal.skip': 'Pomiń lampę', 'cal.back': 'Wstecz', 'cal.done': 'Wszystkie lampy gotowe', 'cal.doneS': 'Pokaz będzie krążył wokół środka parkietu, a kierunki są prawidłowe.',
       'cal.toSync': 'Teraz synchronizacja z muzyką', 'cal.close': 'Zamknij', 'cal.none': 'Nie ma jeszcze lamp — dodaj je w Ustawieniach.',
       'c.red': 'czerwony', 'c.green': 'zielony', 'c.blue': 'niebieski',
@@ -112,6 +116,10 @@
       'cal.up': 'La luce si è alzata IN ALTO?', 'cal.upS': 'Verso il pubblico / sopra le teste.', 'cal.wrong': 'No, dall’altra parte', 'cal.fixed': 'Corretto — controlla di nuovo',
       'cal.color': 'I colori corrispondono alla scritta?', 'cal.colorS': 'La luce cambia colore: rosso → verde → blu.', 'cal.colorNo': 'I colori non corrispondono',
       'cal.colorHint': 'I canali colore sono in un altro ordine — correggili in Impostazioni → Le mie luci → Modifica profilo.',
+      'cal.shut': 'Cerco l’impostazione con cui la luce si accende', 'cal.shutS': 'Le teste economiche spesso si accendono solo con un valore preciso dello „shutter”. Provo uno dopo l’altro — clicca appena la luce si accende.',
+      'cal.try': 'Prova {i} di {n}', 'cal.lit': 'Ora si accende!', 'cal.litOk': 'Memorizzato — la luce si accende (shutter = {v})',
+      'cal.shutNone': 'Nessuna impostazione dello shutter ha acceso la luce. Di solito: indirizzo sbagliato sul display, luce in modalità Sound/Auto invece di DMX o canali diversi dal profilo.',
+      'cal.channels': 'Riconosci i canali passo passo', 'cal.again': 'Riprova',
       'cal.skip': 'Salta la luce', 'cal.back': 'Indietro', 'cal.done': 'Tutte le luci pronte', 'cal.doneS': 'Lo show girerà attorno al centro della pista e le direzioni sono corrette.',
       'cal.toSync': 'Ora la sincronizzazione con la musica', 'cal.close': 'Chiudi', 'cal.none': 'Non ci sono ancora luci — aggiungile nelle Impostazioni.',
       'c.red': 'rosso', 'c.green': 'verde', 'c.blue': 'blu',
@@ -307,6 +315,10 @@
           ${pad('sh-p-spot', 'spot', 'sh.spotPad', 'sh.spotPadS')}
         </div>
       </section>
+      <section class="sh-block sh-moments" id="sh-moments"></section>
+      <section class="sh-block sh-fx" id="sh-fx"></section>
+      <section class="sh-block sh-scenes" id="sh-scenes"></section>
+      <section class="sh-block sh-manual" id="sh-manual"></section>
       <section class="sh-block sh-styles">
         <h4>${esc(t('sh.style'))}</h4>
         <div class="fl-cards" id="sh-cards">${FLAVORS.map(flavorCard).join('')}</div>
@@ -353,7 +365,7 @@
     hold($('#sh-p-smoke'), () => send({ type: 'smoke', hold: true }), () => send({ type: 'smoke', hold: false }));
     $('#sh-p-spot').onclick = () => send({ type: 'spotlight', value: !(S.st && S.st.spotlight && S.st.spotlight.on) });
     $('#sh-sync').onclick = openSync;
-    $('#sh-cal').onclick = openCal;
+    $('#sh-cal').onclick = () => openCal();
     $('#sh-ai').onclick = openAi;
     S.sig.showLang = PH.lang;
     S.sig.showPlaying = S.sig.showPal = S.sig.showChips = undefined;
@@ -502,7 +514,8 @@
     return `${n} ${w}`;
   }
   function stepGo(id) {
-    if (id === 'cable' || id === 'lamps') { PH.setTab('setup'); if (PH.setupGo) PH.setupGo(id === 'cable' ? 'dmx' : 'lamps'); }
+    if (id === 'lamps' && PH.openRig) PH.openRig(S.st && S.st.fixtures.length ? 'list' : 'type');
+    else if (id === 'cable' || id === 'lamps') { PH.setTab('setup'); if (PH.setupGo) PH.setupGo(id === 'cable' ? 'dmx' : 'lamps'); }
     else if (id === 'cal') openCal();
     else if (id === 'music') { if (!LIVE.running) toggleShow(); }
     else if (id === 'sync') openSync();
@@ -709,13 +722,18 @@
   const isHead = (f) => (f.channels || []).some((c) => c === 'pan' || c === 'tilt');
   const hasRgb = (f) => (f.channels || []).some((c) => c === 'red' || c === 'green' || c === 'blue');
   function calFx() { return S.st && S.st.fixtures.find((f) => f.id === CAL.list[CAL.i]); }
-  function openCal() {
+  function openCal(onlyId, step) {
     CAL.list = S.st ? S.st.fixtures.filter((f) => f.type !== 'smoke' && f.type !== 'laser' && f.enabled !== false)
       .sort((a, b) => a.address - b.address).map((f) => f.id) : [];
+    if (onlyId != null && CAL.list.includes(onlyId)) CAL.list = [onlyId];
     CAL.i = 0; CAL.step = 'intro';
     const dlg = dialog('cal-dlg', '<div id="cal-body"></div>');
     dlg.onclose = calEnd;
     dlg.showModal();
+    if (onlyId != null && CAL.list.length === 1) {
+      send({ type: 'show_stop' }); send({ type: 'fx_stop_all' }); send({ type: 'blackout', value: false });
+      CAL.step = step || 'find'; calLight(CAL.list[0]);
+    }
     calRender();
   }
   function calEnd() {
@@ -757,6 +775,11 @@
       const sub = `<div class="cal-who"><small>${esc(t('cal.lamp', { i: CAL.i + 1, n }))}</small><b>${esc(f ? f.name : '')}</b><span class="mono">DMX ${f ? String(f.address).padStart(3, '0') : ''}</span></div>`;
       if (CAL.step === 'find') html = `${sub}<h3>${esc(t('cal.find'))}</h3><p class="ld-note">${esc(t('cal.findS'))}</p><p class="ld-warn" id="cal-nohint" hidden>${esc(t('cal.noHint', { a: f ? f.address : '' }))}</p>
         <div class="ld-f"><button class="btn" id="cal-skip">${esc(t('cal.skip'))}</button><button class="btn" id="cal-no">${esc(t('cal.no'))}</button><button class="btn primary" id="cal-yes">${esc(t('cal.yes'))}</button></div>`;
+      else if (CAL.step === 'shutter') html = `${sub}<h3>${esc(t('cal.shut'))}</h3><p class="ld-note">${esc(t('cal.shutS'))}</p>
+        <div class="cal-try"><b id="cal-try-n"></b><span class="mono" id="cal-try-v"></span></div>
+        <p class="ld-warn" id="cal-shut-none" hidden>${esc(t('cal.shutNone'))}</p>
+        <div class="ld-f"><button class="btn" id="cal-skip">${esc(t('cal.skip'))}</button><button class="btn" id="cal-chan" hidden>${esc(t('cal.channels'))}</button>
+          <button class="btn" id="cal-again" hidden>${esc(t('cal.again'))}</button><button class="btn primary" id="cal-lit">${esc(t('cal.lit'))}</button></div>`;
       else if (CAL.step === 'center') html = `${sub}<h3>${esc(t('cal.center'))}</h3><p class="ld-note">${esc(t('cal.centerS'))}</p>
         <div class="cal-pad" id="cal-pad" tabindex="0"><i class="cx"></i><i class="cy"></i><span>${ic('move')}</span></div>
         <div class="cal-arrows"><button class="btn" data-a="-1,0">${ic('chevron')}</button><button class="btn up" data-a="0,1">${ic('chevron')}</button><button class="btn dn" data-a="0,-1">${ic('chevron')}</button><button class="btn rt" data-a="1,0">${ic('chevron')}</button></div>
@@ -779,11 +802,46 @@
     if (!f) return;
     if (CAL.step === 'find') {
       $('#cal-yes').onclick = () => { CAL.step = isHead(f) ? 'center' : hasRgb(f) ? 'color' : 'next'; if (CAL.step === 'next') next(); else calRender(); };
-      $('#cal-no').onclick = () => { $('#cal-nohint').hidden = false; };
+      $('#cal-no').onclick = () => {
+        const hasShutter = (f.channels || []).some((c) => c === 'shutter' || c === 'strobe');
+        if (hasShutter) { CAL.step = 'shutter'; calRender(); } else $('#cal-nohint').hidden = false;
+      };
       $('#cal-skip').onclick = next;
       // blink so it is easy to spot
       let on = true;
       CAL.test = setInterval(() => { on = !on; send({ type: 'set_many', id: f.id, values: { dimmer: on ? 255 : 30 } }); }, 450);
+    }
+    if (CAL.step === 'shutter') {
+      const tries = [...new Set([f.shutter_open ?? 0, 8, 16, 32, 64, 128, 200, 255, 0, 10, 4, 100])];
+      const orig = f.shutter_open ?? 0;
+      let k = -1, prev = orig, at = 0;
+      const step = () => {
+        k++;
+        if (k >= tries.length) {
+          clearInterval(CAL.test); CAL.test = null;
+          send({ type: 'update_fixture', id: f.id, shutter_open: orig });
+          $('#cal-shut-none').hidden = false; $('#cal-chan').hidden = false; $('#cal-again').hidden = false; $('#cal-lit').hidden = true;
+          return;
+        }
+        prev = k ? tries[k - 1] : orig; at = performance.now();
+        send({ type: 'update_fixture', id: f.id, shutter_open: tries[k] });
+        send({ type: 'set_many', id: f.id, values: { dimmer: 255, red: 255, green: 255, blue: 255, strobe: 0 } });
+        PH.setText($('#cal-try-n'), t('cal.try', { i: k + 1, n: tries.length }));
+        PH.setText($('#cal-try-v'), `shutter = ${tries[k]}`);
+      };
+      step();
+      CAL.test = setInterval(step, 1500);
+      $('#cal-lit').onclick = () => {
+        clearInterval(CAL.test); CAL.test = null;
+        const v = performance.now() - at < 500 ? prev : tries[k];      // a click right after a change meant the one before
+        send({ type: 'update_fixture', id: f.id, shutter_open: v });
+        toast(t('cal.litOk', { v }));
+        CAL.step = isHead(f) ? 'center' : hasRgb(f) ? 'color' : 'next';
+        if (CAL.step === 'next') next(); else calRender();
+      };
+      $('#cal-again').onclick = () => calRender();
+      $('#cal-chan').onclick = () => { $('#cal-dlg').close(); if (PH.startCalibration) PH.startCalibration({}); else { PH.setTab('setup'); if (PH.setupGo) PH.setupGo('dmxcal'); } };
+      $('#cal-skip').onclick = () => { clearInterval(CAL.test); CAL.test = null; send({ type: 'update_fixture', id: f.id, shutter_open: orig }); next(); };
     }
     if (CAL.step === 'center') {
       const padEl = $('#cal-pad');
@@ -866,5 +924,9 @@
     } catch (e) { /* private mode */ }
   }
   PH.openSync = openSync; PH.openLightCal = openCal;
+  PH.showStart = async () => {                       // a moment button: music on (if possible) + the AI director
+    if (!LIVE.running) await start();
+    send({ type: 'show_start' });
+  };
   init();
 })();

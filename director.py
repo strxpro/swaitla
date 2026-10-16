@@ -274,10 +274,17 @@ class Director:
             dim = lk["dim"] or L("glow", level=0.82 + 0.18 * energy)
             fx.start(dim[0], {**dim[1], "order": order, "morph_beats": morph_beats * 0.5}, "all", None, "ap-dim")
         beam = self.flavor_now in ("concert", "club", "rave") and energy > 0.7 and lk["id"] != "build"
+        film = self.flavor_now == "cinema" and 0.3 <= energy <= 0.75 and lk["id"] != "build"
         if beam:
             fx.start(random.choice(["gobo", "gobo_shake"]), {}, "all", None, "ap-beam")
+        elif film:                                       # film: slowly turning gobo textures on the walls
+            fx.start("gobo_spin", {"speed": 22}, "all", None, "ap-beam")
         else:
             fx.stop("ap-beam")
+        if fx.motor_ids():                               # derby / ball / bar / spider: turn with the energy of the music
+            lively = self.flavor_now in ("club", "rave", "concert")
+            fx.start("motors", {"energy": round(energy, 2), "flip": lively, "aux": lively and energy > 0.75,
+                                "beats": 4 if lively else 16}, "all", None, "ap-motor")
 
     def _impact(self) -> None:
         """The drop: a white blinder, strobe for a moment, then straight into a big look."""
@@ -319,7 +326,8 @@ class Director:
                                "max_len": 60.0 / bpm * 0.9}, "all", None, "ap-hit")
         if lk["acc"] == "blinder" and in_bar == 0 and self.bars % 2 == 0:
             fx.start("blinder", {"decay": 0.45}, "all", 1.2, "ap-acc")
-        fast = bool(bpm) and (bpm >= 135 or drop or strength >= 0.9) and fl in ("club", "rave", "concert")
+        loud_part = self.energy_now >= 0.75 and fx.section.get("name") in ("chorus", "drop")
+        fast = bool(bpm) and (bpm >= 135 or drop or strength >= 0.9 or loud_part) and fl in ("club", "rave", "concert")
         if (fx.autopilot.get("lasers") and fast and fx.engine.lasers_enabled and fx.laser_ids()
                 and "ap-laser" not in fx.effects):
             fx.start("laser_hit", {"duty": 0.4, "beats": 1 if bpm < 150 else 0.5}, None, 4 * 60.0 / bpm, "ap-laser")

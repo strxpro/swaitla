@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 TOP = "Lumo"
 FILES = ["main.py", "vision.py", "dmx_controller.py", "interaction.py", "effects.py", "tracking.py", "spotlight.py", "devices.py", "smoke.py", "qlcimport.py", "dmxdoctor.py", "mecal.py",
-         "custom_gestures.py", "stage.py", "calibration.py", "make_package.py", "rhythm.py", "director.py", "musicai.py", "VERSION",
+         "custom_gestures.py", "stage.py", "calibration.py", "make_package.py", "rhythm.py", "director.py", "musicai.py", "aihelp.py", "VERSION",
          "requirements.txt", "fixture_library.json", "README.md", "ROZPISKA.md",
          "run.bat", "instaluj.bat", "odinstaluj.bat", "pakuj.bat", "lumo.ico"]
 DIRS = ["static", "models", "tools", "fixturelib", "tests", "installer"]

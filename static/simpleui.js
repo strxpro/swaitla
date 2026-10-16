@@ -61,6 +61,7 @@
   let fix = null;
   pill.onclick = () => {
     if (fix === 'blackout') PH.send({ type: 'blackout', value: false });
+    else if (fix === 'lamps' && PH.openRig) PH.openRig('type');
     else if (fix) { PH.setTab('setup'); if (PH.setupGo) PH.setupGo(fix); }
   };
   function status(st) {

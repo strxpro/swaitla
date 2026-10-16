@@ -139,7 +139,7 @@ const V2_TEXT = {
     'lk.title': 'Sceny świateł', 'lk.hint': 'klik = przywróć z płynnym przejściem', 'lk.save': 'Zapisz obecny wygląd',
     'lk.empty': 'Ustaw lampy (kolor, pozycja, jasność) i kliknij „Zapisz obecny wygląd”. Potem jednym kliknięciem wracasz do tej sceny.',
     'lk.name': 'Nazwa', 'lk.fade': 'Przejście', 'lk.color': 'Kolor', 'lk.over': 'Nadpisz obecnym wyglądem', 'lk.del': 'Usuń', 'lk.close': 'Gotowe',
-    'lk.lamps': '{n} lamp', 'lk.one': 'Scena', 'toast.lookSaved': 'Zapisano scenę „{name}”', 'guide': 'Przewodnik — pokaż, co gdzie jest',
+    'lk.lamps': '{n} lamp', 'lk.one': 'Scena', 'toast.lookSaved': 'Zapisano scenę „{name}”', 'toast.aimFix': 'Poprawka celowania zapisana ({n})', 'guide': 'Przewodnik — pokaż, co gdzie jest',
     'pill.fixture': 'Lampy',
     'wz.check': 'Wskaż palcem w prawo i w dół — albo kliknij w polu poniżej. Czy światło idzie w to samo miejsce?',
     'wz.ok': 'Tak, zgadza się', 'wz.bad': 'Nie działa', 'wz.fixT': 'Co jest nie tak?',
@@ -184,7 +184,7 @@ const V2_TEXT = {
     'lk.title': 'Scene luci', 'lk.hint': 'clic = richiama con transizione morbida', 'lk.save': 'Salva l’aspetto attuale',
     'lk.empty': 'Imposta le luci (colore, posizione, luminosità) e clicca „Salva l’aspetto attuale”. Poi torni a questa scena con un clic.',
     'lk.name': 'Nome', 'lk.fade': 'Transizione', 'lk.color': 'Colore', 'lk.over': 'Sovrascrivi con l’aspetto attuale', 'lk.del': 'Elimina', 'lk.close': 'Fatto',
-    'lk.lamps': '{n} luci', 'lk.one': 'Scena', 'toast.lookSaved': 'Scena „{name}” salvata', 'guide': 'Guida — mostra cosa c’è e dove',
+    'lk.lamps': '{n} luci', 'lk.one': 'Scena', 'toast.lookSaved': 'Scena „{name}” salvata', 'toast.aimFix': 'Correzione della mira salvata ({n})', 'guide': 'Guida — mostra cosa c’è e dove',
     'pill.fixture': 'Luci',
     'wz.check': 'Punta il dito a destra e in basso — oppure clicca nel riquadro qui sotto. La luce va nello stesso punto?',
     'wz.ok': 'Sì, è giusto', 'wz.bad': 'Non funziona', 'wz.fixT': 'Cosa non va?',
@@ -350,8 +350,12 @@ function onJSON(m) {
   else if (m.type === 'library') { S.library = m.fixtures; }
   else if (m.type === 'qlc') { if (PH.onQlc) PH.onQlc(m); }
   else if (m.type === 'doctor') { if (PH.onDoctor) PH.onDoctor(m); }
-  else if (m.type === 'lib') { if (PH.onLib) PH.onLib(m); }
+  else if (m.type === 'lib') { if (PH.onLib) PH.onLib(m); for (const fn of LIB_LISTENERS) fn(m); }
+  else if (m.type === 'rig') { if (PH.onRig) PH.onRig(m); }
+  else if (m.type === 'aihelp') { if (PH.onAiHelp) PH.onAiHelp(m); }
 }
+
+const LIB_LISTENERS = [];                  // other screens that also want library answers (search results)
 
 /* ================================================================ helpers */
 const fixtures = () => (S.st ? S.st.fixtures : []);
@@ -861,12 +865,14 @@ function updateDock(st) {
         if (e.target.closest('.pw')) { send({ type: 'update_fixture', id: f.id, enabled: !on }); send({ type: 'save' }); return; }
         return e.ctrlKey || e.shiftKey || e.metaKey ? toggleSel(f.id) : send({ type: 'select', id: f.id });
       };
+      b.oncontextmenu = (e) => { if (!PH.lampMenu) return; e.preventDefault(); e.stopPropagation(); PH.lampMenu(e.clientX, e.clientY, f.id); };
       box.appendChild(b);
     });
     const add = document.createElement('button');
     add.className = 'fx-chip add'; add.textContent = t('dock.add');
-    add.onclick = openPicker;
+    add.onclick = () => (PH.openRig ? PH.openRig('type') : openPicker());   // the simple "Dodaj światło" wizard
     box.appendChild(add);
+    box.oncontextmenu = (e) => { if (!PH.stageMenu || e.target.closest('.fx-chip[data-id]')) return; e.preventDefault(); PH.stageMenu(e.clientX, e.clientY); };
   }
   const sel = new Set(st.selection || []);
   for (const b of $$('.fx-chip[data-id]', box)) {
@@ -1886,7 +1892,7 @@ function initControls() {
   $('#trk-clear').onclick = () => send({ type: 'track_clear' });
   $('#show-cam').onchange = (e) => { S.showCam = e.target.checked; };
   $('#floor-cal').onclick = () => (S.floorCal ? (S.floorCal = null) : startFloorCal());
-  for (const id of ['#add-device', '#add-device-2']) $(id).onclick = openPicker;
+  for (const id of ['#add-device', '#add-device-2']) $(id).onclick = () => (PH.openRig ? PH.openRig('type') : openPicker());
   for (const b of $$('#lang button')) b.onclick = () => setLang(b.dataset.lang);
   $('#lasers').onclick = () => send({ type: 'lasers', value: !(S.st && S.st.lasers_enabled) });
   $('#handui').onclick = () => huiSet(!HUI.on);
@@ -2076,7 +2082,7 @@ function huiUpdate(dt) {
 window.PH = {
   S, send, activeFx, fixtures, intensity, rgbOf, openFixtureDialog, setTab, t, tr, toast, esc, fitCanvas, setText,
   floorCorners, onState: ON_STATE, get lang() { return LANG; },
-  CARD, CARD_BIND, refreshSetup, openPicker, openWizard, startFloorCal, huiCalibrate, frameRect, toggleSel, setPageHead,
+  CARD, CARD_BIND, LIB_LISTENERS, refreshSetup, openPicker, openWizard, startFloorCal, huiCalibrate, frameRect, toggleSel, setPageHead,
   clamp, lerp, hsv2rgb, rgb2hsv, HAND_EDGES, I18N, gestureName: (g) => gName(g),
   addI18n(add) {             // other modules register their texts (pl + it)
     for (const l of Object.keys(add)) Object.assign(I18N[l], add[l]);

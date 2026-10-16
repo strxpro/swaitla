@@ -16,7 +16,7 @@
     ['shutter', 'pulse'], ['pan', 'arrows'], ['pan_fine', 'arrows'], ['tilt', 'move'], ['tilt_fine', 'move'],
     ['cwheel', 'palette'], ['gobo', 'gobo'], ['speed', 'gauge'], ['spin', 'refresh'], ['beam', 'layers'],
     ['strip', 'bar'], ['strip_speed', 'gauge'], ['macro', 'auto'], ['aux1', 'bolt'], ['aux2', 'bolt'],
-    ['laser_r', 'laser'], ['laser_g', 'laser'],
+    ['laser', 'laser'], ['laser_r', 'laser'], ['laser_g', 'laser'],
   ];
   const ICON = Object.fromEntries(ROLES);
   const TYPICAL = {
@@ -36,7 +36,7 @@
       'ro.shutter': 'Strobo / migawka', 'ro.pan': 'Obrót (pan)', 'ro.pan_fine': 'Obrót — dokładnie', 'ro.tilt': 'Pochylenie (tilt)', 'ro.tilt_fine': 'Pochylenie — dokładnie',
       'ro.cwheel': 'Koło kolorów', 'ro.gobo': 'Gobo', 'ro.speed': 'Prędkość silników', 'ro.spin': 'Obrót ciągły', 'ro.beam': 'Wiązki / soczewki',
       'ro.strip': 'Pasek LED (program)', 'ro.strip_speed': 'Pasek LED — prędkość', 'ro.macro': 'Program / auto / dźwięk', 'ro.aux1': 'Dodatkowe strobo 1', 'ro.aux2': 'Dodatkowe strobo 2',
-      'ro.laser_r': 'Laser czerwony', 'ro.laser_g': 'Laser zielony', 'ro.smoke': 'Dym',
+      'ro.laser': 'Laser (włącz / wzór)', 'ro.laser_r': 'Laser czerwony', 'ro.laser_g': 'Laser zielony', 'ro.smoke': 'Dym',
     },
     it: {
       'ce.title': 'Canali del dispositivo', 'ce.addr': 'Indirizzo DMX', 'ce.count': 'Numero di canali', 'ce.tpl': 'Schema',
@@ -47,7 +47,7 @@
       'ro.shutter': 'Strobo / otturatore', 'ro.pan': 'Rotazione (pan)', 'ro.pan_fine': 'Rotazione — fine', 'ro.tilt': 'Inclinazione (tilt)', 'ro.tilt_fine': 'Inclinazione — fine',
       'ro.cwheel': 'Ruota colori', 'ro.gobo': 'Gobo', 'ro.speed': 'Velocità motori', 'ro.spin': 'Rotazione continua', 'ro.beam': 'Fasci / lenti',
       'ro.strip': 'Striscia LED (programma)', 'ro.strip_speed': 'Striscia LED — velocità', 'ro.macro': 'Programma / auto / suono', 'ro.aux1': 'Strobo extra 1', 'ro.aux2': 'Strobo extra 2',
-      'ro.laser_r': 'Laser rosso', 'ro.laser_g': 'Laser verde', 'ro.smoke': 'Fumo',
+      'ro.laser': 'Laser (accendi / figura)', 'ro.laser_r': 'Laser rosso', 'ro.laser_g': 'Laser verde', 'ro.smoke': 'Fumo',
     },
   });
   const roleName = (r, f) => (r === 'dimmer' && f && f.type === 'smoke' ? t('ro.smoke') : t(`ro.${r}`));

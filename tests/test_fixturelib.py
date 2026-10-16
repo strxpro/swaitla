@@ -156,6 +156,50 @@ class TestChannelMapping(unittest.TestCase):
         e._render()
         self.assertEqual(e.universe[2], 180)
 
+    def test_laser_mode_channel_turns_it_on_only_when_armed_and_hit(self):
+        import dmx_controller as dc
+        e = dc.DMXEngine()
+        las = e.add_fixture(name="Laser", address=1, type="laser", channels=["macro", "laser_r", "laser_g", "speed"],
+                            defaults={"0": 150})
+        e._render()
+        self.assertEqual(list(e.universe[:4]), [0, 0, 0, 0])                # locked: all zeros, no default either
+        e.chan_set(las.id, 0, 200)
+        e._render()
+        self.assertEqual(e.universe[0], 0)                                  # a hand test on CH1 is gated too
+        las.overrides.clear()
+        e.lasers_enabled = True
+        e._render()
+        self.assertEqual(e.universe[0], 0)                                  # armed, but no hit: still dark
+        las.current["laser"] = 255.0
+        e._render()
+        self.assertEqual(list(e.universe[:3]), [255, 255, 255])             # hit: CH1 "on" (255 when not set)
+        e.update_fixture(las.id, laser_mode=192)
+        e._render()
+        self.assertEqual(e.universe[0], 192)                                # the value found in "Ustaw laser"
+        self.assertEqual(dc.Fixture.from_config(las.to_config()).laser_mode, 192)
+        e.update_fixture(las.id, laser_mode=None)
+        self.assertIsNone(las.laser_mode)
+
+
+class TestReplaceProfile(unittest.TestCase):
+    def test_another_model_keeps_the_lamp(self):
+        import dmx_controller as dc
+        e = dc.DMXEngine()
+        f = e.add_fixture(name="Prawe", address=1, type="moving_head", model="Old 9CH", pos=[3.0, 2.5, -3.0], mount="floor",
+                          channels=["pan", "tilt", "cwheel", "gobo", "shutter", "dimmer", "speed", "macro", "none"],
+                          caps={"2": [[0, 9, "white", "color", "#fff"]]}, wheel=[[5, "#ffffff", "white"]])
+        f.aim_pan = [100.0, 200.0]
+        f.overrides[0] = 77
+        e.replace_profile(f.id, {"model": "New 11CH", "type": "moving_head",
+                                 "channels": ["pan", "pan_fine", "tilt", "tilt_fine", "dimmer", "shutter", "red", "green", "blue"],
+                                 "pan_16bit": True, "tilt_16bit": True})
+        self.assertEqual((f.name, f.address, f.pos, f.mount, f.aim_pan), ("Prawe", 1, [3.0, 2.5, -3.0], "floor", [100.0, 200.0]))
+        self.assertEqual(f.model, "New 11CH")
+        self.assertEqual(f.footprint, 9)
+        self.assertIsNone(f.caps)                                            # nothing of the old model is left
+        self.assertIsNone(f.wheel)
+        self.assertEqual(f.overrides, {})
+
 
 class TestAddresses(unittest.TestCase):
     def test_collision_and_free_address(self):
